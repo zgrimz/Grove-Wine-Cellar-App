@@ -4,9 +4,9 @@ struct Wine: Identifiable, Codable {
     let id: UUID
     var name: String
     var type: WineType
-    var subType: WineSubType?
+    var subTypes: Set<WineSubType>
     var producer: String?
-    var vintage: String?
+    var vintage: Int?
     var region: String?
     var varietal: String?
     var imagePath: String?
@@ -16,9 +16,9 @@ struct Wine: Identifiable, Codable {
         id: UUID = UUID(),
         name: String,
         type: WineType,
-        subType: WineSubType? = nil,
+        subTypes: Set<WineSubType> = [],
         producer: String? = nil,
-        vintage: String? = nil,
+        vintage: Int? = nil,
         region: String? = nil,
         varietal: String? = nil,
         imagePath: String? = nil,
@@ -27,7 +27,7 @@ struct Wine: Identifiable, Codable {
         self.id = id
         self.name = name
         self.type = type
-        self.subType = subType
+        self.subTypes = subTypes
         self.producer = producer
         self.vintage = vintage
         self.region = region

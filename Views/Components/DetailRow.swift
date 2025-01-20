@@ -1,3 +1,5 @@
+import SwiftUI
+
 struct DetailRow: View {
     let label: String
     let value: String?
@@ -8,6 +10,7 @@ struct DetailRow: View {
                 Text(label)
                     .font(.subheadline)
                     .foregroundColor(.secondary)
+                
                 Text(value)
                     .font(.body)
             }

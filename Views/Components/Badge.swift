@@ -1,3 +1,5 @@
+import SwiftUI
+
 struct Badge: View {
     let text: String
     let color: Color

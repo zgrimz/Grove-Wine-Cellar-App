@@ -1,7 +1,11 @@
+import Foundation
+
 struct RecognizedWineAttributes: Codable {
-    var name: String?
-    var producer: String?
-    var vintage: String?
-    var region: String?
-    var varietal: String?
+    let name: String
+    let type: WineType
+    let subTypes: Set<WineSubType>?
+    let producer: String?
+    let vintage: Int?
+    let region: String?
+    let varietal: String?
 }

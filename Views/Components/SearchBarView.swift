@@ -1,3 +1,5 @@
+import SwiftUI
+
 struct SearchBarView: View {
     @Binding var text: String
     
