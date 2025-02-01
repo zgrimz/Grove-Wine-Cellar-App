@@ -6,6 +6,7 @@ struct WineDetailView: View {
     let onUpdate: (Wine) async -> Void
     @State private var image: UIImage?
     @State private var showingEditSheet = false
+    @State private var showingDeleteAlert = false
     @Environment(\.dismiss) private var dismiss
     
     var body: some View {
@@ -51,27 +52,48 @@ struct WineDetailView: View {
                 }
                 .padding(.horizontal)
                 
-                if wine.isArchived {
-                    HStack {
-                        Image(systemName: "archivebox.fill")
-                        Text("Archived")
+                Spacer()
+                
+                VStack(spacing: 16) {
+                    Button(action: {
+                        Task {
+                            var updatedWine = wine
+                            updatedWine.isArchived.toggle()
+                            await onUpdate(updatedWine)
+                            dismiss()
+                        }
+                    }) {
+                        HStack {
+                            Image(systemName: wine.isArchived ? "archivebox.circle.fill" : "archivebox")
+                            Text(wine.isArchived ? "Unarchive Wine" : "Archive Wine")
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(Color.orange.opacity(0.1))
+                        .foregroundColor(.orange)
+                        .cornerRadius(10)
                     }
-                    .foregroundColor(.orange)
-                    .padding(.horizontal)
+                    
+                    Button(role: .destructive) {
+                        showingDeleteAlert = true
+                    } label: {
+                        HStack {
+                            Image(systemName: "trash")
+                            Text("Delete Wine")
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(Color.red.opacity(0.1))
+                        .foregroundColor(.red)
+                        .cornerRadius(10)
+                    }
                 }
+                .padding()
             }
         }
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
-            ToolbarItemGroup(placement: .navigationBarTrailing) {
-                Button(wine.isArchived ? "Unarchive" : "Archive") {
-                    Task {
-                        var updatedWine = wine
-                        updatedWine.isArchived.toggle()
-                        await onUpdate(updatedWine)
-                        dismiss()
-                    }
-                }
+            ToolbarItem(placement: .navigationBarTrailing) {
                 Button("Edit") {
                     showingEditSheet = true
                 }
@@ -89,6 +111,18 @@ struct WineDetailView: View {
                     wine: wine
                 )
             }
+        }
+        .alert("Delete Wine", isPresented: $showingDeleteAlert) {
+            Button("Delete", role: .destructive) {
+                Task {
+                    // Call delete function from parent view
+                    await onUpdate(wine.deleteFlag())
+                    dismiss()
+                }
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("Are you sure you want to delete this wine? This action cannot be undone.")
         }
         .onAppear {
             if let imagePath = wine.imagePath {

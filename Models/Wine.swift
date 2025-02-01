@@ -12,6 +12,7 @@ struct Wine: Identifiable, Codable {
     var imagePath: String?
     var dateAdded: Date
     var isArchived: Bool 
+    var markedForDeletion: Bool = false // Add this property to Wine struct
     
     init(
         id: UUID = UUID(),
@@ -24,7 +25,8 @@ struct Wine: Identifiable, Codable {
         varietal: String? = nil,
         imagePath: String? = nil,
         dateAdded: Date = Date(),
-        isArchived: Bool = false
+        isArchived: Bool = false,
+        markedForDeletion: Bool = false // Add this property to Wine struct
     ) {
         self.id = id
         self.name = name
@@ -37,5 +39,15 @@ struct Wine: Identifiable, Codable {
         self.imagePath = imagePath
         self.dateAdded = dateAdded
         self.isArchived = isArchived
+        self.markedForDeletion = markedForDeletion // Add this property to Wine struct
+    }
+}
+
+extension Wine {
+    func deleteFlag() -> Wine {
+        var copy = self
+        copy.isArchived = true // Mark as archived first
+        copy.markedForDeletion = true // Add this property to Wine struct
+        return copy
     }
 }

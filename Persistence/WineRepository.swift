@@ -9,6 +9,12 @@ class WineRepository: ObservableObject {
     }
     
     func saveWine(_ wine: Wine) throws {
+        // Add at start of function:
+        if wine.markedForDeletion {
+            try deleteWine(id: wine.id)
+            return
+        }
+        
         let request = NSFetchRequest<WineEntity>(entityName: "WineEntity")
         request.predicate = NSPredicate(format: "id == %@", wine.id as CVarArg)
         
