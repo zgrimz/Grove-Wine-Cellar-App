@@ -2,21 +2,40 @@ import Foundation
 
 // Response model matching the required JSON structure
 struct WineRecommendation: Codable {
-    let recommendation: String
-    let why: [String]          // Changed back to 'why' to match JSON
-    let pairingConfidence: Int
-    let alternateRecommendation: String?  // Changed to match JSON key
-    
-    // Computed property to format reasons as a string (keep this for convenience)
-    var reasons: String {
-        why.map { "• \($0)" }.joined(separator: "\n")
+    struct RecommendedWine: Codable {
+        let name: String
+        let producer: String
+        let vintage: Int?  // Made optional to handle null values
     }
     
-    enum CodingKeys: String, CodingKey {
-        case recommendation
-        case why
-        case pairingConfidence = "pairingConfidence"
-        case alternateRecommendation = "alternateRecommendation"
+    struct BetterPairing: Codable {
+        let wine: String
+        let explanation: String
+    }
+    
+    let recommendedWine: RecommendedWine
+    let whyThisPair: [String]
+    let pairingConfidence: Int
+    let betterPairingRecommendation: BetterPairing?
+    
+    // Updated computed property to handle optional vintage
+    var recommendation: String {
+        if let vintage = recommendedWine.vintage {
+            return "\(recommendedWine.name) \(vintage)"
+        }
+        return recommendedWine.name
+    }
+    
+    var why: [String] {
+        whyThisPair
+    }
+    
+    var alternateRecommendation: String? {
+        betterPairingRecommendation.map { "\($0.wine): \($0.explanation)" }
+    }
+    
+    var reasons: String {
+        why.map { "• \($0)" }.joined(separator: "\n")
     }
 }
 
@@ -38,7 +57,6 @@ class SommelierService {
     }
     
     func getWineRecommendations(userQuery: String, inventory: [Wine]) async throws -> WineRecommendation {
-        // Filter out archived wines
         let activeInventory = inventory.filter { !$0.isArchived }
         
         let url = URL(string: baseURL)!
@@ -60,12 +78,26 @@ class SommelierService {
                         [
                             "type": "text",
                             "text": """
-                            You are a professional sommelier. You will be provided with a wine inventory and a dish/meal. Please recommend the best possible wine from the inventory to pair with the dish. Follow the instructions below exactly and return the final response in valid JSON format.
+                            You are a professional sommelier. You will be provided with a wine inventory and a dish/meal. Please recommend the best possible wine from the inventory to pair with the dish. Return the response in the following exact JSON format:
 
-                            Recommendation: Name one wine from the provided inventory.
-                            Why?: Provide a concise (2–3 bullet points) explanation of why this wine pairs well with the dish. Mention relevant wine attributes such as acidity, tannin, body, and flavor profile.
-                            Pairing Confidence (1–10): Provide a numeric rating indicating how strongly you believe this wine complements the dish.
-                            If Under 8: If the pairing confidence is below 8, explain briefly why the match isn't ideal and recommend a wine style or variety not found in the current inventory that might be a better match.
+                            {
+                              "recommendedWine": {
+                                "name": "Wine Name",
+                                "producer": "Producer Name",
+                                "vintage": YYYY
+                              },
+                              "whyThisPair": [
+                                "First reason with wine attributes (acidity, tannin, body, flavor)",
+                                "Second reason with complementary aspects"
+                              ],
+                              "pairingConfidence": N,
+                              "betterPairingRecommendation": {
+                                "wine": "Alternative wine style/variety",
+                                "explanation": "Why this would be better"
+                              }
+                            }
+
+                            Note: betterPairingRecommendation should only be included if pairingConfidence is below 8.
 
                             Wine Inventory:
                             \(inventoryString)
@@ -93,7 +125,6 @@ class SommelierService {
             throw SommelierError.noRecommendations
         }
         
-        // Extract and parse the JSON response from Claude's text
         return try parseRecommendation(from: responseText)
     }
     
@@ -104,29 +135,27 @@ class SommelierService {
         return String(data: data, encoding: .utf8) ?? "[]"
     }
     
-private func parseRecommendation(from text: String) throws -> WineRecommendation {
-    // Print the full response for debugging
-    print("Raw response from Claude:", text)
-    
-    // Find JSON content in the response
-    guard let jsonStart = text.firstIndex(of: "{"),
-          let jsonEnd = text.lastIndex(of: "}") else {
-        print("Failed to find JSON markers in response")
-        throw SommelierError.invalidResponseFormat
+    private func parseRecommendation(from text: String) throws -> WineRecommendation {
+        print("Raw response from Claude:", text)
+        
+        guard let jsonStart = text.firstIndex(of: "{"),
+              let jsonEnd = text.lastIndex(of: "}") else {
+            print("Failed to find JSON markers in response")
+            throw SommelierError.invalidResponseFormat
+        }
+        
+        let jsonString = String(text[jsonStart...jsonEnd])
+        print("Extracted JSON string:", jsonString)
+        
+        do {
+            let jsonData = jsonString.data(using: .utf8)!
+            let recommendation = try JSONDecoder().decode(WineRecommendation.self, from: jsonData)
+            return recommendation
+        } catch {
+            print("JSON Decoding error:", error)
+            throw SommelierError.invalidResponseFormat
+        }
     }
-    
-    let jsonString = String(text[jsonStart...jsonEnd])
-    print("Extracted JSON string:", jsonString)
-    
-    do {
-        let jsonData = jsonString.data(using: .utf8)!
-        let recommendation = try JSONDecoder().decode(WineRecommendation.self, from: jsonData)
-        return recommendation
-    } catch {
-        print("JSON Decoding error:", error)
-        throw SommelierError.invalidResponseFormat
-    }
-}
     
     enum SommelierError: Error {
         case apiError
