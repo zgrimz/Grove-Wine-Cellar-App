@@ -18,6 +18,9 @@ class SommelierService {
     }
     
     func getWineRecommendations(userQuery: String, inventory: [Wine]) async throws -> String {
+        // Filter out archived wines
+        let activeInventory = inventory.filter { !$0.isArchived }
+        
         let url = URL(string: baseURL)!
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
@@ -25,7 +28,8 @@ class SommelierService {
         request.setValue("2023-06-01", forHTTPHeaderField: "anthropic-version")
         request.setValue(apiKey, forHTTPHeaderField: "x-api-key")
         
-        let inventoryJSON = try JSONEncoder().encode(inventory)
+        // Use filtered inventory instead of full inventory
+        let inventoryJSON = try JSONEncoder().encode(activeInventory)
         let inventoryString = String(data: inventoryJSON, encoding: .utf8) ?? "[]"
         
         let requestBody: [String: Any] = [
