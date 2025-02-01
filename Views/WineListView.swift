@@ -14,13 +14,6 @@ struct WineListView: View {
                 .listRowInsets(EdgeInsets())
                 .listRowBackground(Color.clear)
             
-            Toggle("Show Archived Wines", isOn: $viewModel.showArchived)
-                .onChange(of: viewModel.showArchived) { _ in
-                    Task {
-                        await viewModel.loadWines()
-                    }
-                }
-            
             ForEach(viewModel.filteredWines) { wine in
                 NavigationLink(
                     destination: WineDetailView(
@@ -55,6 +48,27 @@ struct WineListView: View {
                     viewModel.deleteWine(viewModel.filteredWines[index])
                 }
             }
+            
+            // Add full-width button at bottom of list
+            Button(action: {
+                viewModel.showArchived.toggle()
+                Task {
+                    await viewModel.loadWines()
+                }
+            }) {
+                HStack {
+                    Image(systemName: viewModel.showArchived ? "archivebox.circle.fill" : "archivebox")
+                    Text(viewModel.showArchived ? "View Current Inventory" : "View Archived Wines")
+                }
+                .frame(maxWidth: .infinity)
+                .padding()
+                .background(Color.secondary.opacity(0.1))
+                .cornerRadius(10)
+            }
+            .buttonStyle(PlainButtonStyle())
+            .listRowInsets(EdgeInsets())
+            .listRowBackground(Color.clear)
+            .padding(.vertical)
         }
         .navigationTitle("Grove Wine Cellar")
         .toolbar {
@@ -78,6 +92,9 @@ struct WineListView: View {
         }
         .refreshable {
             await viewModel.loadWines()
+        }
+        .onAppear {
+            print("View appeared. Total wines: \(viewModel.filteredWines.count)")
         }
     }
 }

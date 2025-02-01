@@ -22,7 +22,8 @@ class WineListViewModel: ObservableObject {
             let matchesSearch = searchText.isEmpty || 
                 wine.name.localizedCaseInsensitiveContains(searchText)
             let matchesType = selectedType == nil || wine.type == selectedType
-            return matchesSearch && matchesType
+            let matchesArchiveState = wine.isArchived == showArchived // Add this line
+            return matchesSearch && matchesType && matchesArchiveState // Update this line
         }
     }
     
