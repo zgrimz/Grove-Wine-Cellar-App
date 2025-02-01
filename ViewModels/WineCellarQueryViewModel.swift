@@ -24,15 +24,28 @@ class WineCellarQueryViewModel: ObservableObject {
             let recommendation = try await SommelierService.shared
                 .getWineRecommendations(userQuery: foodInput, inventory: inventory)
             
+            // Format the recommendation into a readable string
+            let formattedContent = """
+                Recommended Wine: \(recommendation.recommendation)
+
+                Why This Pairing Works:
+                \(recommendation.reasons)
+
+                Pairing Confidence: \(recommendation.pairingConfidence)/10
+
+                \(recommendation.alternateRecommendation.map { "Alternative Suggestion: \($0)" } ?? "")
+                """
+            
             currentPairing = ChatMessage(
-                content: recommendation,
+                content: formattedContent,
                 isUser: false,
                 timestamp: Date()
             )
             foodInput = "" // Clear input after successful pairing
         } catch {
+            print("Error getting wine pairing:", error)
             currentPairing = ChatMessage(
-                content: "Sorry, I couldn't find a wine pairing. Please try again.",
+                content: "Error: \(error.localizedDescription)",
                 isUser: false,
                 timestamp: Date()
             )
