@@ -14,6 +14,13 @@ struct WineListView: View {
                 .listRowInsets(EdgeInsets())
                 .listRowBackground(Color.clear)
             
+            Toggle("Show Archived Wines", isOn: $viewModel.showArchived)
+                .onChange(of: viewModel.showArchived) { _ in
+                    Task {
+                        await viewModel.loadWines()
+                    }
+                }
+            
             ForEach(viewModel.filteredWines) { wine in
                 NavigationLink(
                     destination: WineDetailView(
@@ -26,6 +33,21 @@ struct WineListView: View {
                     )
                 ) {
                     WineRowView(wine: wine)
+                }
+                .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                    Button(role: .destructive) {
+                        viewModel.deleteWine(wine)
+                    } label: {
+                        Label("Delete", systemImage: "trash")
+                    }
+                    
+                    Button {
+                        viewModel.toggleArchived(wine)
+                    } label: {
+                        Label(wine.isArchived ? "Unarchive" : "Archive", 
+                              systemImage: wine.isArchived ? "archivebox.circle.fill" : "archivebox")
+                    }
+                    .tint(.orange)
                 }
             }
             .onDelete { indexSet in

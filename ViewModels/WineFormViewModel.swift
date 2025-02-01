@@ -67,7 +67,9 @@ class WineFormViewModel: ObservableObject {
             vintage: vintageInt,
             region: region.isEmpty ? nil : region,
             varietal: varietal.isEmpty ? nil : varietal,
-            imagePath: imagePath
+            imagePath: imagePath,
+            dateAdded: self.wine?.dateAdded ?? Date(),
+            isArchived: self.wine?.isArchived ?? false  // Preserve archived status
         )
         
         await onSave(wine)

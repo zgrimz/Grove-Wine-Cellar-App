@@ -6,7 +6,7 @@ class WineListViewModel: ObservableObject {
     @Published var wines: [Wine] = []
     @Published var searchText = ""
     @Published var selectedType: WineType?
-    @Published var showingSubtypesPicker = false
+    @Published var showArchived = false
     
     private let repository: WineRepository
     
@@ -19,19 +19,16 @@ class WineListViewModel: ObservableObject {
     
     var filteredWines: [Wine] {
         wines.filter { wine in
-            let matchesSearch = searchText.isEmpty ||
-                wine.name.localizedCaseInsensitiveContains(searchText) ||
-                (wine.producer?.localizedCaseInsensitiveContains(searchText) ?? false)
-            
+            let matchesSearch = searchText.isEmpty || 
+                wine.name.localizedCaseInsensitiveContains(searchText)
             let matchesType = selectedType == nil || wine.type == selectedType
-            
             return matchesSearch && matchesType
         }
     }
     
     func loadWines() async {
         do {
-            wines = try repository.fetchWines()
+            wines = try repository.fetchWines(includeArchived: showArchived)
         } catch {
             print("Error loading wines: \(error)")
         }
@@ -51,23 +48,33 @@ class WineListViewModel: ObservableObject {
         }
     }
     
-    // Changed from updateWine to saveWine to match repository method
     func updateWine(_ wine: Wine) async {
         do {
-            try repository.saveWine(wine)  // Changed from updateWine to saveWine
+            try repository.saveWine(wine)
             await loadWines()
         } catch {
             print("Error updating wine: \(error)")
         }
     }
     
-    // Changed from addWine to saveWine to match repository method
     func addWine(_ wine: Wine) async {
         do {
-            try repository.saveWine(wine)  // Changed from addWine to saveWine
+            try repository.saveWine(wine)
             await loadWines()
         } catch {
             print("Error adding wine: \(error)")
+        }
+    }
+    
+    func toggleArchived(_ wine: Wine) {
+        Task {
+            do {
+                var updatedWine = wine
+                updatedWine.isArchived.toggle()
+                await updateWine(updatedWine)
+            } catch {
+                print("Error toggling archive status: \(error)")
+            }
         }
     }
 }

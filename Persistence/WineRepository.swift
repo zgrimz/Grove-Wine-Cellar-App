@@ -37,12 +37,16 @@ class WineRepository: ObservableObject {
         entity.region = wine.region
         entity.varietal = wine.varietal
         entity.imagePath = wine.imagePath
+        entity.isArchived = wine.isArchived
         
         try context.save()
     }
     
-    func fetchWines() throws -> [Wine] {
+    func fetchWines(includeArchived: Bool = false) throws -> [Wine] {
         let request = NSFetchRequest<WineEntity>(entityName: "WineEntity")
+        if !includeArchived {
+            request.predicate = NSPredicate(format: "isArchived == NO")
+        }
         request.sortDescriptors = [NSSortDescriptor(keyPath: \WineEntity.dateAdded, ascending: false)]
         
         let entities = try context.fetch(request)
@@ -77,7 +81,8 @@ class WineRepository: ObservableObject {
                 region: entity.region,
                 varietal: entity.varietal,
                 imagePath: entity.imagePath,
-                dateAdded: entity.dateAdded ?? Date()
+                dateAdded: entity.dateAdded ?? Date(),
+                isArchived: entity.isArchived
             )
         }
     }
@@ -89,5 +94,15 @@ class WineRepository: ObservableObject {
         let entities = try context.fetch(request)
         entities.forEach(context.delete)
         try context.save()
+    }
+
+    func toggleArchived(_ wine: Wine) throws {
+        let request = NSFetchRequest<WineEntity>(entityName: "WineEntity")
+        request.predicate = NSPredicate(format: "id == %@", wine.id as CVarArg)
+        
+        if let entity = try context.fetch(request).first {
+            entity.isArchived = !entity.isArchived
+            try context.save()
+        }
     }
 }

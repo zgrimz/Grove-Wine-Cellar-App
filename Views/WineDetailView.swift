@@ -6,6 +6,7 @@ struct WineDetailView: View {
     let onUpdate: (Wine) async -> Void
     @State private var image: UIImage?
     @State private var showingEditSheet = false
+    @Environment(\.dismiss) private var dismiss
     
     var body: some View {
         ScrollView {
@@ -49,12 +50,31 @@ struct WineDetailView: View {
                     DetailRow(label: "Varietal", value: wine.varietal)
                 }
                 .padding(.horizontal)
+                
+                if wine.isArchived {
+                    HStack {
+                        Image(systemName: "archivebox.fill")
+                        Text("Archived")
+                    }
+                    .foregroundColor(.orange)
+                    .padding(.horizontal)
+                }
             }
         }
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
-            Button("Edit") {
-                showingEditSheet = true
+            ToolbarItemGroup(placement: .navigationBarTrailing) {
+                Button(wine.isArchived ? "Unarchive" : "Archive") {
+                    Task {
+                        var updatedWine = wine
+                        updatedWine.isArchived.toggle()
+                        await onUpdate(updatedWine)
+                        dismiss()
+                    }
+                }
+                Button("Edit") {
+                    showingEditSheet = true
+                }
             }
         }
         .sheet(isPresented: $showingEditSheet) {

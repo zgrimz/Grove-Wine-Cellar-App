@@ -11,6 +11,7 @@ struct Wine: Identifiable, Codable {
     var varietal: String?
     var imagePath: String?
     var dateAdded: Date
+    var isArchived: Bool 
     
     init(
         id: UUID = UUID(),
@@ -22,7 +23,8 @@ struct Wine: Identifiable, Codable {
         region: String? = nil,
         varietal: String? = nil,
         imagePath: String? = nil,
-        dateAdded: Date = Date()
+        dateAdded: Date = Date(),
+        isArchived: Bool = false
     ) {
         self.id = id
         self.name = name
@@ -34,5 +36,6 @@ struct Wine: Identifiable, Codable {
         self.varietal = varietal
         self.imagePath = imagePath
         self.dateAdded = dateAdded
+        self.isArchived = isArchived
     }
 }

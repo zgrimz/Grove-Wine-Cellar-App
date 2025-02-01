@@ -3,7 +3,7 @@
 <plist version="1.0">
 <dict>
     <key>NSCameraUsageDescription</key>
-    <string>The camera is used to take photos of wine bottles to add to your cellar.</string>
+    <string>The camera is used to take photos of wine bottles to use AI to identify wines and to add to your cellar.</string>
     <key>NSPhotoLibraryUsageDescription</key>
     <string>Access to your photo library is needed to select wine bottle images.</string>
 </dict>
