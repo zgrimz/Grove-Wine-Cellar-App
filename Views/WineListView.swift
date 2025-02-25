@@ -3,6 +3,8 @@ import SwiftUI
 struct WineListView: View {
     @ObservedObject var viewModel: WineListViewModel
     @State private var showingAddWine = false
+    @State private var wineToDelete: Wine? = nil
+    @State private var showingDeleteAlert = false
     
     var body: some View {
         List {
@@ -29,7 +31,8 @@ struct WineListView: View {
                 }
                 .swipeActions(edge: .trailing, allowsFullSwipe: false) {
                     Button(role: .destructive) {
-                        viewModel.deleteWine(wine)
+                        wineToDelete = wine
+                        showingDeleteAlert = true
                     } label: {
                         Label("Delete", systemImage: "trash")
                     }
@@ -44,8 +47,9 @@ struct WineListView: View {
                 }
             }
             .onDelete { indexSet in
-                indexSet.forEach { index in
-                    viewModel.deleteWine(viewModel.filteredWines[index])
+                if let index = indexSet.first {
+                    wineToDelete = viewModel.filteredWines[index]
+                    showingDeleteAlert = true
                 }
             }
             
@@ -95,6 +99,19 @@ struct WineListView: View {
         }
         .onAppear {
             print("View appeared. Total wines: \(viewModel.filteredWines.count)")
+        }
+        .alert("Delete Wine", isPresented: $showingDeleteAlert) {
+            Button("Delete", role: .destructive) {
+                if let wine = wineToDelete {
+                    viewModel.deleteWine(wine)
+                    wineToDelete = nil
+                }
+            }
+            Button("Cancel", role: .cancel) {
+                wineToDelete = nil
+            }
+        } message: {
+            Text("Are you sure you want to delete this wine? This action cannot be undone.")
         }
     }
 }
