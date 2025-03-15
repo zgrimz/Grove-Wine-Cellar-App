@@ -7,8 +7,9 @@
         <attribute name="name" optional="YES" attributeType="String"/>
         <attribute name="producer" optional="YES" attributeType="String"/>
         <attribute name="region" optional="YES" attributeType="String"/>
-        <attribute name="subTypes" optional="YES" attributeType="String"/>
-        <attribute name="type" optional="YES" attributeType="String"/>
+        <attribute name="color" optional="YES" attributeType="String"/>
+        <attribute name="style" optional="YES" attributeType="String"/>
+        <attribute name="sweetness" optional="YES" attributeType="String"/>
         <attribute name="varietal" optional="YES" attributeType="String"/>
         <attribute name="vintage" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="isArchived" optional="NO" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>

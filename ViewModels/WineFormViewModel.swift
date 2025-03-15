@@ -1,11 +1,13 @@
 import SwiftUI
 import UIKit
+import Foundation
 
 @MainActor
 class WineFormViewModel: ObservableObject {
     @Published var name = ""
-    @Published var type = WineType.red
-    @Published var subTypes: Set<WineSubType> = []
+    @Published var color = WineColor.red
+    @Published var style = WineStyle.still
+    @Published var sweetness: Set<WineSweetness> = []
     @Published var producer = ""
     @Published var vintage = ""
     @Published var region = ""
@@ -26,8 +28,9 @@ class WineFormViewModel: ObservableObject {
         
         if let wine = wine {
             self.name = wine.name
-            self.type = wine.type
-            self.subTypes = wine.subTypes
+            self.color = wine.color
+            self.style = wine.style
+            self.sweetness = wine.sweetness
             self.producer = wine.producer ?? ""
             self.vintage = wine.vintage?.description ?? ""
             self.region = wine.region ?? ""
@@ -61,15 +64,16 @@ class WineFormViewModel: ObservableObject {
         let wine = Wine(
             id: self.wine?.id ?? UUID(),
             name: name,
-            type: type,
-            subTypes: subTypes,
+            color: color,
+            style: style,
+            sweetness: sweetness,
             producer: producer.isEmpty ? nil : producer,
             vintage: vintageInt,
             region: region.isEmpty ? nil : region,
             varietal: varietal.isEmpty ? nil : varietal,
             imagePath: imagePath,
             dateAdded: self.wine?.dateAdded ?? Date(),
-            isArchived: self.wine?.isArchived ?? false  // Preserve archived status
+            isArchived: self.wine?.isArchived ?? false
         )
         
         await onSave(wine)

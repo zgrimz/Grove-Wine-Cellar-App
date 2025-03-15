@@ -1,5 +1,6 @@
 import SwiftUI
 import UIKit
+import Foundation
 
 struct WineDetailView: View {
     let wine: Wine
@@ -31,11 +32,21 @@ struct WineDetailView: View {
                     }
                     
                     HStack {
-                        Badge(text: wine.type.rawValue, color: typeColor(for: wine.type))
-                        
-                        // Display all subtypes
-                        ForEach(Array(wine.subTypes), id: \.self) { subType in
-                            Badge(text: subType.rawValue, color: .gray)
+                        Badge(text: wine.color.rawValue, color: colorFor(wine.color))
+                        Badge(text: wine.style.rawValue, color: .gray)
+                    }
+                    
+                    if !wine.sweetness.isEmpty {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("Sweetness:")
+                                .font(.subheadline)
+                                .foregroundColor(.secondary)
+                            
+                            HStack {
+                                ForEach(Array(wine.sweetness).sorted(by: { $0.rawValue < $1.rawValue }), id: \.self) { sweetness in
+                                    Badge(text: sweetness.rawValue, color: .blue)
+                                }
+                            }
                         }
                     }
                 }
@@ -115,7 +126,6 @@ struct WineDetailView: View {
         .alert("Delete Wine", isPresented: $showingDeleteAlert) {
             Button("Delete", role: .destructive) {
                 Task {
-                    // Call delete function from parent view
                     await onUpdate(wine.deleteFlag())
                     dismiss()
                 }
@@ -131,14 +141,16 @@ struct WineDetailView: View {
         }
     }
     
-    private func typeColor(for type: WineType) -> Color {
-        switch type {
+    private func colorFor(_ color: WineColor) -> Color {
+        switch color {
         case .red:
             return .red
         case .white:
             return .yellow
         case .rose:
             return .pink
+        case .orange:
+            return .orange
         case .other:
             return .gray
         }

@@ -9,7 +9,7 @@ class WineRepository: ObservableObject {
     }
     
     func saveWine(_ wine: Wine) throws {
-        // Add at start of function:
+        // Check if marked for deletion
         if wine.markedForDeletion {
             try deleteWine(id: wine.id)
             return
@@ -30,9 +30,10 @@ class WineRepository: ObservableObject {
         
         // Update properties
         entity.name = wine.name
-        entity.type = wine.type.rawValue
-        // Convert subTypes to a string for CoreData storage
-        entity.subTypes = Array(wine.subTypes).map { $0.rawValue }.joined(separator: ",")
+        entity.color = wine.color.rawValue
+        entity.style = wine.style.rawValue
+        // Convert sweetness to a string for CoreData storage
+        entity.sweetness = Array(wine.sweetness).map { $0.rawValue }.joined(separator: ",")
         entity.producer = wine.producer
         // Store vintage as Int16
         if let vintage = wine.vintage {
@@ -59,14 +60,16 @@ class WineRepository: ObservableObject {
         return entities.compactMap { entity in
             guard let id = entity.id,
                   let name = entity.name,
-                  let typeString = entity.type,
-                  let type = WineType(rawValue: typeString) else {
+                  let colorString = entity.color,
+                  let color = WineColor(rawValue: colorString),
+                  let styleString = entity.style,
+                  let style = WineStyle(rawValue: styleString) else {
                 return nil
             }
             
-            // Convert stored comma-separated string back to Set<WineSubType>
-            let subTypes = Set((entity.subTypes?.split(separator: ",") ?? [])
-                .compactMap { WineSubType(rawValue: String($0)) })
+            // Convert stored comma-separated string back to Set<WineSweetness>
+            let sweetness = Set((entity.sweetness?.split(separator: ",") ?? [])
+                .compactMap { WineSweetness(rawValue: String($0)) })
             
             // Convert vintage from Int16 to Int
             let vintage: Int?
@@ -80,8 +83,9 @@ class WineRepository: ObservableObject {
             return Wine(
                 id: id,
                 name: name,
-                type: type,
-                subTypes: subTypes,
+                color: color,
+                style: style,
+                sweetness: sweetness,
                 producer: entity.producer,
                 vintage: vintage,
                 region: entity.region,

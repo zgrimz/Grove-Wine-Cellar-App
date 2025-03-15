@@ -16,11 +16,13 @@ class VisionService {
             fatalError("API Key not found in Config.plist")
         }
     }
+    
     // Intermediate struct to match the API response format
     private struct APIWineResponse: Codable {
         let name: String
-        let type: WineType
-        let subType: WineSubType?
+        let color: WineColor
+        let style: WineStyle
+        let sweetness: WineSweetness?
         let producer: String?
         let vintage: Int?
         let region: String?
@@ -68,8 +70,9 @@ class VisionService {
                             Return a JSON object with ONLY the following fields describing the wine label, inferring details where possible:
                             {
                                 \"name\": \"string\",
-                                \"type\": \"Red|White|Rosé\",
-                                \"subType\": \"Still|Sparkling|Dessert|Fortified|null\",
+                                \"color\": \"Red|White|Rosé|Orange|Other\",
+                                \"style\": \"Still|Sparkling|Fortified\",
+                                \"sweetness\": \"Dry|Off-Dry|Sweet|Dessert-Sweet|null\",
                                 \"producer\": \"string|null\",
                                 \"vintage\": number|null,
                                 \"region\": \"string|null\",
@@ -119,8 +122,9 @@ class VisionService {
         // Transform to our RecognizedWineAttributes model
         let attributes = RecognizedWineAttributes(
             name: apiResponse.name,
-            type: apiResponse.type,
-            subTypes: apiResponse.subType.map { Set([$0]) } ?? Set(),  // Convert optional single subType to Set
+            color: apiResponse.color,
+            style: apiResponse.style,
+            sweetness: apiResponse.sweetness.map { Set([$0]) } ?? Set(),
             producer: apiResponse.producer,
             vintage: apiResponse.vintage,
             region: apiResponse.region,

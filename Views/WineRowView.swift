@@ -1,5 +1,6 @@
 import SwiftUI
 import UIKit
+import Foundation
 
 struct WineRowView: View {
     let wine: Wine
@@ -34,18 +35,28 @@ struct WineRowView: View {
                 }
                 
                 HStack {
-                    Text(wine.type.rawValue)
+                    Text(wine.color.rawValue)
                         .font(.caption)
                         .padding(.horizontal, 8)
                         .padding(.vertical, 2)
                         .background(
                             RoundedRectangle(cornerRadius: 4)
-                                .fill(typeColor(for: wine.type).opacity(0.2))
+                                .fill(colorFor(wine.color).opacity(0.2))
                         )
-                        .foregroundColor(typeColor(for: wine.type))
+                        .foregroundColor(colorFor(wine.color))
+                    
+                    Text(wine.style.rawValue)
+                        .font(.caption)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 2)
+                        .background(
+                            RoundedRectangle(cornerRadius: 4)
+                                .fill(Color.gray.opacity(0.2))
+                        )
+                        .foregroundColor(.gray)
                     
                     if let vintage = wine.vintage {
-                        Text(String(vintage))  // Convert Int to String
+                        Text(String(vintage))
                             .font(.caption)
                             .foregroundColor(.secondary)
                     }
@@ -59,14 +70,16 @@ struct WineRowView: View {
         }
     }
     
-    private func typeColor(for type: WineType) -> Color {
-        switch type {
+    private func colorFor(_ color: WineColor) -> Color {
+        switch color {
         case .red:
             return .red
         case .white:
             return .yellow
         case .rose:
             return .pink
+        case .orange:
+            return .orange
         case .other:
             return .gray
         }

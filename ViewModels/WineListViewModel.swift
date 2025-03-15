@@ -1,11 +1,13 @@
 import SwiftUI
 import Combine
+import Foundation
 
 @MainActor
 class WineListViewModel: ObservableObject {
     @Published var wines: [Wine] = []
     @Published var searchText = ""
-    @Published var selectedType: WineType?
+    @Published var selectedColor: WineColor?
+    @Published var selectedStyle: WineStyle?
     @Published var showArchived = false
     
     private let repository: WineRepository
@@ -21,15 +23,16 @@ class WineListViewModel: ObservableObject {
         wines.filter { wine in
             let matchesSearch = searchText.isEmpty || 
                 wine.name.localizedCaseInsensitiveContains(searchText)
-            let matchesType = selectedType == nil || wine.type == selectedType
-            let matchesArchiveState = wine.isArchived == showArchived // Add this line
-            return matchesSearch && matchesType && matchesArchiveState // Update this line
+            let matchesColor = selectedColor == nil || wine.color == selectedColor
+            let matchesStyle = selectedStyle == nil || wine.style == selectedStyle
+            let matchesArchiveState = wine.isArchived == showArchived
+            return matchesSearch && matchesColor && matchesStyle && matchesArchiveState
         }
     }
     
     func loadWines() async {
         do {
-            wines = try repository.fetchWines(includeArchived: showArchived)
+            wines = try repository.fetchWines(includeArchived: true)
         } catch {
             print("Error loading wines: \(error)")
         }

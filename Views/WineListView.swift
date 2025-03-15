@@ -1,4 +1,5 @@
 import SwiftUI
+import Foundation
 
 struct WineListView: View {
     @ObservedObject var viewModel: WineListViewModel
@@ -12,7 +13,11 @@ struct WineListView: View {
                 .listRowInsets(EdgeInsets())
                 .listRowBackground(Color.clear)
             
-            TypeFilterView(selectedType: $viewModel.selectedType)
+            ColorFilterView(selectedColor: $viewModel.selectedColor)
+                .listRowInsets(EdgeInsets())
+                .listRowBackground(Color.clear)
+            
+            StyleFilterView(selectedStyle: $viewModel.selectedStyle)
                 .listRowInsets(EdgeInsets())
                 .listRowBackground(Color.clear)
             

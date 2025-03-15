@@ -1,5 +1,6 @@
 import SwiftUI
 import UIKit
+import Foundation
 
 struct WineFormView: View {
     @Environment(\.dismiss) private var dismiss
@@ -7,7 +8,7 @@ struct WineFormView: View {
     @State private var showingImageOptions = false
     @State private var showingError = false
     @State private var errorMessage = ""
-    @State private var showingSubtypesPicker = false
+    @State private var showingSweetnessSelection = false
     
     init(onSave: @escaping (Wine) async -> Void, wine: Wine? = nil) {
         self.viewModel = WineFormViewModel(onSave: onSave, wine: wine)
@@ -38,19 +39,24 @@ struct WineFormView: View {
             
             Section(header: Text("Wine Details")) {
                 TextField("Name", text: $viewModel.name)
-                Picker("Type", selection: $viewModel.type) {
-                    ForEach(WineType.allCases, id: \.self) { type in
-                        Text(type.rawValue).tag(type)
+                Picker("Color", selection: $viewModel.color) {
+                    ForEach(WineColor.allCases, id: \.self) { color in
+                        Text(color.rawValue).tag(color)
+                    }
+                }
+                Picker("Style", selection: $viewModel.style) {
+                    ForEach(WineStyle.allCases, id: \.self) { style in
+                        Text(style.rawValue).tag(style)
                     }
                 }
                 
                 Button(action: {
-                    showingSubtypesPicker = true
+                    showingSweetnessSelection = true
                 }) {
                     HStack {
-                        Text("Subtypes")
+                        Text("Sweetness")
                         Spacer()
-                        Text(subtypesDisplayText)
+                        Text(sweetnessDisplayText)
                             .foregroundColor(.gray)
                     }
                 }
@@ -91,8 +97,8 @@ struct WineFormView: View {
                     processImageIfNeeded()
                 }
         }
-        .sheet(isPresented: $showingSubtypesPicker) {
-            SubtypeSelectionView(selectedSubtypes: $viewModel.subTypes)
+        .sheet(isPresented: $showingSweetnessSelection) {
+            SweetnessSelectionView(selectedSweetness: $viewModel.sweetness)
         }
         .actionSheet(isPresented: $showingImageOptions) {
             ActionSheet(
@@ -124,11 +130,11 @@ struct WineFormView: View {
         }
     }
     
-    private var subtypesDisplayText: String {
-        if viewModel.subTypes.isEmpty {
+    private var sweetnessDisplayText: String {
+        if viewModel.sweetness.isEmpty {
             return "None"
         }
-        return viewModel.subTypes
+        return viewModel.sweetness
             .map { $0.rawValue }
             .sorted()
             .joined(separator: ", ")
@@ -141,8 +147,9 @@ struct WineFormView: View {
                     let attributes = try await viewModel.processImage(image)
                     await MainActor.run {
                         viewModel.name = attributes.name
-                        viewModel.type = attributes.type
-                        viewModel.subTypes = attributes.subTypes ?? []
+                        viewModel.color = attributes.color
+                        viewModel.style = attributes.style
+                        viewModel.sweetness = attributes.sweetness ?? []
                         viewModel.producer = attributes.producer ?? ""
                         viewModel.vintage = attributes.vintage.map(String.init) ?? ""
                         viewModel.region = attributes.region ?? ""
