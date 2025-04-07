@@ -25,3 +25,4 @@ Grove Wine Cellar is a basic wine tracking iOS application designed to help wine
 - Uses Core Data for local storage of wine information
 - Camera integration for wine label photos
 - Image storage with efficient compression
+- Uses Claude API for vision and LLM querrying
