@@ -2,7 +2,7 @@
 
 ## About
 
-Grove Wine Cellar is a basic wine tracking iOS application designed to help wine enthusiasts find wine pairings for meals and dishes. The app provides a digital cellar where users can inventory the wines they own and querry their the wines they have in to AI to get wine pairings.
+Grove Wine Cellar is a basic wine tracking iOS application designed to help wine enthusiasts find wine pairings for meals and dishes. The app provides a digital cellar where users can inventory the wines they own and query their the wines they have in to AI to get wine pairings.
 
 ## Features
 
@@ -25,4 +25,4 @@ Grove Wine Cellar is a basic wine tracking iOS application designed to help wine
 - Uses Core Data for local storage of wine information
 - Camera integration for wine label photos
 - Image storage with efficient compression
-- Uses Claude API for vision and LLM querrying
+- Uses Claude API for vision and LLM querying
