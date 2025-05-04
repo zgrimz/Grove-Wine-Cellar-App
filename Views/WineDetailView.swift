@@ -63,6 +63,19 @@ struct WineDetailView: View {
                 }
                 .padding(.horizontal)
                 
+                if let notes = wine.notes, !notes.isEmpty {
+                    Divider()
+                    
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Notes")
+                            .font(.headline)
+                        
+                        Text(notes)
+                            .padding(.top, 4)
+                    }
+                    .padding(.horizontal)
+                }
+                
                 Spacer()
                 
                 VStack(spacing: 16) {

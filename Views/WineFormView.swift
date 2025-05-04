@@ -69,6 +69,11 @@ struct WineFormView: View {
                 TextField("Region", text: $viewModel.region)
                 TextField("Varietal", text: $viewModel.varietal)
             }
+            
+            Section(header: Text("Notes")) {
+                TextEditor(text: $viewModel.notes)
+                    .frame(minHeight: 100)
+            }
         }
         .navigationTitle(viewModel.isEditMode ? "Edit Wine" : "Add Wine")
         .navigationBarTitleDisplayMode(.inline)

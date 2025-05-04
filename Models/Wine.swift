@@ -10,6 +10,7 @@ struct Wine: Identifiable, Codable {
     var vintage: Int?
     var region: String?
     var varietal: String?
+    var notes: String?
     var imagePath: String?
     var dateAdded: Date
     var isArchived: Bool 
@@ -25,6 +26,7 @@ struct Wine: Identifiable, Codable {
         vintage: Int? = nil,
         region: String? = nil,
         varietal: String? = nil,
+        notes: String? = nil,
         imagePath: String? = nil,
         dateAdded: Date = Date(),
         isArchived: Bool = false,
@@ -39,6 +41,7 @@ struct Wine: Identifiable, Codable {
         self.vintage = vintage
         self.region = region
         self.varietal = varietal
+        self.notes = notes
         self.imagePath = imagePath
         self.dateAdded = dateAdded
         self.isArchived = isArchived

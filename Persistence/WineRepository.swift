@@ -35,6 +35,7 @@ class WineRepository: ObservableObject {
         // Convert sweetness to a string for CoreData storage
         entity.sweetness = Array(wine.sweetness).map { $0.rawValue }.joined(separator: ",")
         entity.producer = wine.producer
+        entity.notes = wine.notes
         // Store vintage as Int16
         if let vintage = wine.vintage {
             entity.vintage = Int16(vintage)
@@ -90,6 +91,7 @@ class WineRepository: ObservableObject {
                 vintage: vintage,
                 region: entity.region,
                 varietal: entity.varietal,
+                notes: entity.notes,
                 imagePath: entity.imagePath,
                 dateAdded: entity.dateAdded ?? Date(),
                 isArchived: entity.isArchived

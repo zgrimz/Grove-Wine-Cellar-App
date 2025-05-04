@@ -12,6 +12,7 @@ class WineFormViewModel: ObservableObject {
     @Published var vintage = ""
     @Published var region = ""
     @Published var varietal = ""
+    @Published var notes = ""
     @Published var image: UIImage?
     @Published var isProcessing = false
     @Published var showingImagePicker = false
@@ -35,6 +36,7 @@ class WineFormViewModel: ObservableObject {
             self.vintage = wine.vintage?.description ?? ""
             self.region = wine.region ?? ""
             self.varietal = wine.varietal ?? ""
+            self.notes = wine.notes ?? ""
             
             if let imagePath = wine.imagePath {
                 self.image = ImageStorageService.shared.loadImage(fromPath: imagePath)
@@ -71,6 +73,7 @@ class WineFormViewModel: ObservableObject {
             vintage: vintageInt,
             region: region.isEmpty ? nil : region,
             varietal: varietal.isEmpty ? nil : varietal,
+            notes: notes.isEmpty ? nil : notes,
             imagePath: imagePath,
             dateAdded: self.wine?.dateAdded ?? Date(),
             isArchived: self.wine?.isArchived ?? false
