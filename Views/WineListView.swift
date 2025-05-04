@@ -45,7 +45,7 @@ struct WineListView: View {
                     Button {
                         viewModel.toggleArchived(wine)
                     } label: {
-                        Label(wine.isArchived ? "Unarchive" : "Archive", 
+                        Label(wine.isArchived ? "Unarchive" : "Archive",
                               systemImage: wine.isArchived ? "archivebox.circle.fill" : "archivebox")
                     }
                     .tint(.orange)

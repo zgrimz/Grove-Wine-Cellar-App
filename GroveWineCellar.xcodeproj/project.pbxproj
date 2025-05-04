@@ -30,6 +30,12 @@
 		6B4710342D07AD4200C8FC37 /* ImageStorageService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B4710112D079E9700C8FC37 /* ImageStorageService.swift */; };
 		6B4710352D07AD5000C8FC37 /* PersistenceController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B4710092D079BB400C8FC37 /* PersistenceController.swift */; };
 		6B4710362D07AD5000C8FC37 /* WineRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B47100A2D079BC900C8FC37 /* WineRepository.swift */; };
+		6B6D8E7B2DC825140065C738 /* AppticsAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = 6B6D8E7A2DC825140065C738 /* AppticsAnalytics */; };
+		6B6D8E7D2DC825140065C738 /* AppticsApiTracker in Frameworks */ = {isa = PBXBuildFile; productRef = 6B6D8E7C2DC825140065C738 /* AppticsApiTracker */; };
+		6B6D8E7F2DC825140065C738 /* AppticsCrossPromotion in Frameworks */ = {isa = PBXBuildFile; productRef = 6B6D8E7E2DC825140065C738 /* AppticsCrossPromotion */; };
+		6B6D8E812DC825140065C738 /* AppticsExtension in Frameworks */ = {isa = PBXBuildFile; productRef = 6B6D8E802DC825140065C738 /* AppticsExtension */; };
+		6B6D8E832DC825140065C738 /* AppticsFeedbackKit in Frameworks */ = {isa = PBXBuildFile; productRef = 6B6D8E822DC825140065C738 /* AppticsFeedbackKit */; };
+		6B6D8E852DC82A5A0065C738 /* apptics-config.plist in Resources */ = {isa = PBXBuildFile; fileRef = 6B6D8E842DC82A5A0065C738 /* apptics-config.plist */; };
 		6B7258062D3B502100964366 /* ChatMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B7258052D3B502000964366 /* ChatMessage.swift */; };
 		6B786F2A2D0930820058F4EF /* SubtypeSelectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B786F292D09307C0058F4EF /* SubtypeSelectionView.swift */; };
 		6BA349E72D85171E00DA23F2 /* ColorFilterView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6BA349E62D85171E00DA23F2 /* ColorFilterView.swift */; };
@@ -88,6 +94,7 @@
 		6B4710212D07AB3000C8FC37 /* FilterChip.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FilterChip.swift; sourceTree = "<group>"; };
 		6B4710222D07AB3F00C8FC37 /* ImagePicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImagePicker.swift; sourceTree = "<group>"; };
 		6B4710232D07AB7300C8FC37 /* GroveWineCellarApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroveWineCellarApp.swift; sourceTree = "<group>"; };
+		6B6D8E842DC82A5A0065C738 /* apptics-config.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "apptics-config.plist"; sourceTree = "<group>"; };
 		6B7258052D3B502000964366 /* ChatMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatMessage.swift; sourceTree = "<group>"; };
 		6B786F202D07B15A0058F4EF /* GroveWineCellar-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = "GroveWineCellar-Info.plist"; sourceTree = "<group>"; };
 		6B786F212D07B22D0058F4EF /* GroveWineCellar.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = GroveWineCellar.entitlements; sourceTree = "<group>"; };
@@ -122,6 +129,11 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				6B6D8E7D2DC825140065C738 /* AppticsApiTracker in Frameworks */,
+				6B6D8E7B2DC825140065C738 /* AppticsAnalytics in Frameworks */,
+				6B6D8E812DC825140065C738 /* AppticsExtension in Frameworks */,
+				6B6D8E832DC825140065C738 /* AppticsFeedbackKit in Frameworks */,
+				6B6D8E7F2DC825140065C738 /* AppticsCrossPromotion in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -145,6 +157,7 @@
 		6B470FBF2D079A6000C8FC37 = {
 			isa = PBXGroup;
 			children = (
+				6B6D8E842DC82A5A0065C738 /* apptics-config.plist */,
 				6BA349F22D8519E500DA23F2 /* Config.plist */,
 				6B2144DE2D3DF0C6006DB146 /* Media.xcassets */,
 				6B786F212D07B22D0058F4EF /* GroveWineCellar.entitlements */,
@@ -158,6 +171,7 @@
 				6B4710082D079BAA00C8FC37 /* Persistence */,
 				6B470FE12D079A6200C8FC37 /* GroveWineCellarTests */,
 				6B470FEB2D079A6200C8FC37 /* GroveWineCellarUITests */,
+				6B6D8E872DC82DFF0065C738 /* Frameworks */,
 				6B470FC92D079A6000C8FC37 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -246,6 +260,13 @@
 			path = Models;
 			sourceTree = "<group>";
 		};
+		6B6D8E872DC82DFF0065C738 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -263,6 +284,11 @@
 			);
 			name = GroveWineCellar;
 			packageProductDependencies = (
+				6B6D8E7A2DC825140065C738 /* AppticsAnalytics */,
+				6B6D8E7C2DC825140065C738 /* AppticsApiTracker */,
+				6B6D8E7E2DC825140065C738 /* AppticsCrossPromotion */,
+				6B6D8E802DC825140065C738 /* AppticsExtension */,
+				6B6D8E822DC825140065C738 /* AppticsFeedbackKit */,
 			);
 			productName = GroveWineCellar;
 			productReference = 6B470FC82D079A6000C8FC37 /* GroveWineCellar.app */;
@@ -346,6 +372,9 @@
 			);
 			mainGroup = 6B470FBF2D079A6000C8FC37;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				6B6D8E792DC825140065C738 /* XCRemoteSwiftPackageReference "Apptics-SP" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 6B470FC92D079A6000C8FC37 /* Products */;
 			projectDirPath = "";
@@ -364,6 +393,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				6BA349F32D8519E500DA23F2 /* Config.plist in Resources */,
+				6B6D8E852DC82A5A0065C738 /* apptics-config.plist in Resources */,
 				6B2144DF2D3DF0C6006DB146 /* Media.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -584,6 +614,8 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "GroveWineCellar-Info.plist";
+				INFOPLIST_KEY_NSCameraUsageDescription = "The camera is used to take photos of wine bottles to use AI to identify wines and to add to your cellar.";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Access to your photo library is needed to select wine bottle images.";
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
@@ -599,7 +631,7 @@
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 15.0;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.zachary.grovewinecellar;
+				PRODUCT_BUNDLE_IDENTIFIER = xyz.grovehouse.grovewinecellar;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SDKROOT = auto;
@@ -626,6 +658,8 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "GroveWineCellar-Info.plist";
+				INFOPLIST_KEY_NSCameraUsageDescription = "The camera is used to take photos of wine bottles to use AI to identify wines and to add to your cellar.";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Access to your photo library is needed to select wine bottle images.";
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
@@ -641,7 +675,7 @@
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 15.0;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.zachary.grovewinecellar;
+				PRODUCT_BUNDLE_IDENTIFIER = xyz.grovehouse.grovewinecellar;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SDKROOT = auto;
@@ -783,6 +817,45 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		6B6D8E792DC825140065C738 /* XCRemoteSwiftPackageReference "Apptics-SP" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/zoho/Apptics-SP/";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.2.6003;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		6B6D8E7A2DC825140065C738 /* AppticsAnalytics */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 6B6D8E792DC825140065C738 /* XCRemoteSwiftPackageReference "Apptics-SP" */;
+			productName = AppticsAnalytics;
+		};
+		6B6D8E7C2DC825140065C738 /* AppticsApiTracker */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 6B6D8E792DC825140065C738 /* XCRemoteSwiftPackageReference "Apptics-SP" */;
+			productName = AppticsApiTracker;
+		};
+		6B6D8E7E2DC825140065C738 /* AppticsCrossPromotion */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 6B6D8E792DC825140065C738 /* XCRemoteSwiftPackageReference "Apptics-SP" */;
+			productName = AppticsCrossPromotion;
+		};
+		6B6D8E802DC825140065C738 /* AppticsExtension */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 6B6D8E792DC825140065C738 /* XCRemoteSwiftPackageReference "Apptics-SP" */;
+			productName = AppticsExtension;
+		};
+		6B6D8E822DC825140065C738 /* AppticsFeedbackKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 6B6D8E792DC825140065C738 /* XCRemoteSwiftPackageReference "Apptics-SP" */;
+			productName = AppticsFeedbackKit;
+		};
+/* End XCSwiftPackageProductDependency section */
 
 /* Begin XCVersionGroup section */
 		6B47100B2D079BF500C8FC37 /* WineDataModel.xcdatamodeld */ = {
