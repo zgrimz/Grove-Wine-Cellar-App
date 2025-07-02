@@ -7,62 +7,69 @@ struct WineRowView: View {
     @State private var image: UIImage?
     
     var body: some View {
-        HStack {
+        HStack(spacing: 16) {
+            // Larger, more prominent image
             if let image = image {
                 Image(uiImage: image)
                     .resizable()
                     .scaledToFill()
-                    .frame(width: 60, height: 60)
-                    .clipShape(RoundedRectangle(cornerRadius: 8))
+                    .frame(width: 80, height: 80)
+                    .clipShape(RoundedRectangle(cornerRadius: 12))
             } else {
-                RoundedRectangle(cornerRadius: 8)
-                    .fill(Color.gray.opacity(0.2))
-                    .frame(width: 60, height: 60)
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(Color(.systemGray5))
+                    .frame(width: 80, height: 80)
                     .overlay(
-                        Image(systemName: "wine.bottle")
-                            .foregroundColor(.gray)
+                        Image(systemName: "wine.bottle.fill")
+                            .font(.title2)
+                            .foregroundColor(.secondary)
                     )
             }
             
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: 8) {
+                // Wine name with better typography
                 Text(wine.name)
                     .font(.headline)
+                    .fontWeight(.medium)
+                    .lineLimit(2)
                 
+                // Producer with icon
                 if let producer = wine.producer {
-                    Text(producer)
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
+                    HStack(spacing: 4) {
+                        Image(systemName: "building.2")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                        Text(producer)
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                    }
                 }
                 
-                HStack {
-                    Text(wine.color.rawValue)
+                // Enhanced badges with better spacing
+                HStack(spacing: 8) {
+                    // Color badge with wine glass icon
+                    Label(wine.color.rawValue, systemImage: "wineglass")
                         .font(.caption)
                         .padding(.horizontal, 8)
-                        .padding(.vertical, 2)
-                        .background(
-                            RoundedRectangle(cornerRadius: 4)
-                                .fill(colorFor(wine.color).opacity(0.2))
-                        )
+                        .padding(.vertical, 4)
+                        .background(colorFor(wine.color).opacity(0.15))
                         .foregroundColor(colorFor(wine.color))
+                        .clipShape(Capsule())
                     
-                    Text(wine.style.rawValue)
-                        .font(.caption)
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 2)
-                        .background(
-                            RoundedRectangle(cornerRadius: 4)
-                                .fill(Color.gray.opacity(0.2))
-                        )
-                        .foregroundColor(.gray)
-                    
+                    // Vintage with prominent display
                     if let vintage = wine.vintage {
                         Text(String(vintage))
                             .font(.caption)
-                            .foregroundColor(.secondary)
+                            .fontWeight(.medium)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 4)
+                            .background(Color(.systemGray5))
+                            .clipShape(Capsule())
                     }
                 }
             }
         }
+        .padding(.vertical, 8)
         .onAppear {
             if let imagePath = wine.imagePath {
                 image = ImageStorageService.shared.loadImage(fromPath: imagePath)
@@ -70,18 +77,18 @@ struct WineRowView: View {
         }
     }
     
-    private func colorFor(_ color: WineColor) -> Color {
-        switch color {
+    private func colorFor(_ wineColor: WineColor) -> Color {
+        switch wineColor {
         case .red:
-            return .red
+            return Color(red: 0.7, green: 0.2, blue: 0.2)
         case .white:
-            return .yellow
+            return Color(red: 0.9, green: 0.9, blue: 0.7)
         case .rose:
-            return .pink
+            return Color(red: 0.9, green: 0.6, blue: 0.7)
         case .orange:
-            return .orange
+            return Color.orange
         case .other:
-            return .gray
+            return Color.secondary
         }
     }
 }

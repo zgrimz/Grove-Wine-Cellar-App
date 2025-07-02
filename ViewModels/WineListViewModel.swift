@@ -72,13 +72,9 @@ class WineListViewModel: ObservableObject {
     
     func toggleArchived(_ wine: Wine) {
         Task {
-            do {
-                var updatedWine = wine
-                updatedWine.isArchived.toggle()
-                await updateWine(updatedWine)
-            } catch {
-                print("Error toggling archive status: \(error)")
-            }
+            var updatedWine = wine
+            updatedWine.isArchived.toggle()
+            await updateWine(updatedWine)
         }
     }
 }

@@ -5,6 +5,8 @@ import SwiftUI
 class WineCellarQueryViewModel: ObservableObject {
     @Published var foodInput = ""
     @Published var currentPairing: ChatMessage?
+    @Published var currentRecommendation: WineRecommendation?
+    @Published var matchedWine: Wine?
     @Published var isLoading = false
     @Published var pairingType: PairingType = .food
     @Published var selectedWineColor: WineColor?
@@ -26,7 +28,16 @@ class WineCellarQueryViewModel: ObservableObject {
             let recommendation = try await SommelierService.shared
                 .getWineRecommendations(userQuery: foodInput, inventory: inventory, pairingType: pairingType, preferredWineColor: selectedWineColor)
             
-            // Format the recommendation into a readable string
+            // Store the structured recommendation
+            currentRecommendation = recommendation
+            
+            // Find the matching wine in inventory
+            matchedWine = inventory.first { wine in
+                wine.name.localizedCaseInsensitiveContains(recommendation.recommendedWine.name) &&
+                wine.producer?.localizedCaseInsensitiveContains(recommendation.recommendedWine.producer) == true
+            }
+            
+            // Format the recommendation into a readable string for fallback
             let formattedContent = """
                 Recommended Wine: \(recommendation.recommendation)
 
@@ -56,6 +67,8 @@ class WineCellarQueryViewModel: ObservableObject {
     
     func reset() {
         currentPairing = nil
+        currentRecommendation = nil
+        matchedWine = nil
         foodInput = ""
         pairingType = .food
         selectedWineColor = nil
