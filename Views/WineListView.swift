@@ -6,6 +6,7 @@ struct WineListView: View {
     @State private var showingAddWine = false
     @State private var wineToDelete: Wine? = nil
     @State private var showingDeleteAlert = false
+    @State private var showingFilterPanel = false
     
     var body: some View {
         List {
@@ -13,13 +14,22 @@ struct WineListView: View {
                 .listRowInsets(EdgeInsets())
                 .listRowBackground(Color.clear)
             
-            ColorFilterView(selectedColor: $viewModel.selectedColor)
-                .listRowInsets(EdgeInsets())
-                .listRowBackground(Color.clear)
-            
-            StyleFilterView(selectedStyle: $viewModel.selectedStyle)
-                .listRowInsets(EdgeInsets())
-                .listRowBackground(Color.clear)
+            HStack {
+                ColorFilterView(selectedColor: $viewModel.selectedColor)
+                
+                Spacer()
+                
+                Button(action: {
+                    showingFilterPanel = true
+                }) {
+                    Image(systemName: "line.3.horizontal.decrease.circle")
+                        .font(.title2)
+                        .foregroundColor(.accentColor)
+                }
+                .padding(.trailing)
+            }
+            .listRowInsets(EdgeInsets())
+            .listRowBackground(Color.clear)
             
             ForEach(viewModel.filteredWines) { wine in
                 NavigationLink(
@@ -98,6 +108,13 @@ struct WineListView: View {
                     }
                 )
             }
+        }
+        .sheet(isPresented: $showingFilterPanel) {
+            FilterPanelView(
+                selectedColor: $viewModel.selectedColor,
+                selectedStyle: $viewModel.selectedStyle,
+                isPresented: $showingFilterPanel
+            )
         }
         .refreshable {
             await viewModel.loadWines()

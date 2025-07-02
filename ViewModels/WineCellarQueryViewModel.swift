@@ -6,6 +6,8 @@ class WineCellarQueryViewModel: ObservableObject {
     @Published var foodInput = ""
     @Published var currentPairing: ChatMessage?
     @Published var isLoading = false
+    @Published var pairingType: PairingType = .food
+    @Published var selectedWineColor: WineColor?
     
     private let repository: WineRepository
     
@@ -22,7 +24,7 @@ class WineCellarQueryViewModel: ObservableObject {
         do {
             let inventory = try repository.fetchWines()
             let recommendation = try await SommelierService.shared
-                .getWineRecommendations(userQuery: foodInput, inventory: inventory)
+                .getWineRecommendations(userQuery: foodInput, inventory: inventory, pairingType: pairingType, preferredWineColor: selectedWineColor)
             
             // Format the recommendation into a readable string
             let formattedContent = """
@@ -55,5 +57,7 @@ class WineCellarQueryViewModel: ObservableObject {
     func reset() {
         currentPairing = nil
         foodInput = ""
+        pairingType = .food
+        selectedWineColor = nil
     }
 }

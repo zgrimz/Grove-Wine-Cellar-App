@@ -13,7 +13,7 @@ struct ColorFilterView: View {
                     action: { selectedColor = nil }
                 )
                 
-                ForEach(WineColor.allCases, id: \.self) { color in
+                ForEach([WineColor.red, WineColor.white, WineColor.rose], id: \.self) { color in
                     FilterChip(
                         text: color.rawValue,
                         isSelected: selectedColor == color,

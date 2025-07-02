@@ -38,6 +38,7 @@
 		6B6D8E852DC82A5A0065C738 /* apptics-config.plist in Resources */ = {isa = PBXBuildFile; fileRef = 6B6D8E842DC82A5A0065C738 /* apptics-config.plist */; };
 		6B7258062D3B502100964366 /* ChatMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B7258052D3B502000964366 /* ChatMessage.swift */; };
 		6B786F2A2D0930820058F4EF /* SubtypeSelectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B786F292D09307C0058F4EF /* SubtypeSelectionView.swift */; };
+		6B889A0F2E14C2BC00DF589F /* FilterPanelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B889A0E2E14C2BC00DF589F /* FilterPanelView.swift */; };
 		6BA349E72D85171E00DA23F2 /* ColorFilterView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6BA349E62D85171E00DA23F2 /* ColorFilterView.swift */; };
 		6BA349E92D85172700DA23F2 /* StyleFilterView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6BA349E82D85172700DA23F2 /* StyleFilterView.swift */; };
 		6BA349EB2D85173100DA23F2 /* SweetnessSelectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6BA349EA2D85173100DA23F2 /* SweetnessSelectionView.swift */; };
@@ -99,6 +100,7 @@
 		6B786F202D07B15A0058F4EF /* GroveWineCellar-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = "GroveWineCellar-Info.plist"; sourceTree = "<group>"; };
 		6B786F212D07B22D0058F4EF /* GroveWineCellar.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = GroveWineCellar.entitlements; sourceTree = "<group>"; };
 		6B786F292D09307C0058F4EF /* SubtypeSelectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubtypeSelectionView.swift; sourceTree = "<group>"; };
+		6B889A0E2E14C2BC00DF589F /* FilterPanelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FilterPanelView.swift; sourceTree = "<group>"; };
 		6BA349E62D85171E00DA23F2 /* ColorFilterView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorFilterView.swift; sourceTree = "<group>"; };
 		6BA349E82D85172700DA23F2 /* StyleFilterView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StyleFilterView.swift; sourceTree = "<group>"; };
 		6BA349EA2D85173100DA23F2 /* SweetnessSelectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SweetnessSelectionView.swift; sourceTree = "<group>"; };
@@ -232,6 +234,7 @@
 		6B47101F2D07AB0100C8FC37 /* Components */ = {
 			isa = PBXGroup;
 			children = (
+				6B889A0E2E14C2BC00DF589F /* FilterPanelView.swift */,
 				6BA349EA2D85173100DA23F2 /* SweetnessSelectionView.swift */,
 				6BA349E82D85172700DA23F2 /* StyleFilterView.swift */,
 				6BA349E62D85171E00DA23F2 /* ColorFilterView.swift */,
@@ -420,6 +423,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				6B4710012D079AA000C8FC37 /* WineSubType.swift in Sources */,
+				6B889A0F2E14C2BC00DF589F /* FilterPanelView.swift in Sources */,
 				6B4710242D07AB7400C8FC37 /* GroveWineCellarApp.swift in Sources */,
 				6B47100D2D079BF500C8FC37 /* WineDataModel.xcdatamodeld in Sources */,
 				6B4710352D07AD5000C8FC37 /* PersistenceController.swift in Sources */,

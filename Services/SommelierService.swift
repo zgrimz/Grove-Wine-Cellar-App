@@ -1,5 +1,10 @@
 import Foundation
 
+enum PairingType {
+    case food
+    case occasion
+}
+
 // Response model matching the required JSON structure
 struct WineRecommendation: Codable {
     struct RecommendedWine: Codable {
@@ -56,8 +61,13 @@ class SommelierService {
         }
     }
     
-    func getWineRecommendations(userQuery: String, inventory: [Wine]) async throws -> WineRecommendation {
-        let activeInventory = inventory.filter { !$0.isArchived }
+    func getWineRecommendations(userQuery: String, inventory: [Wine], pairingType: PairingType = .food, preferredWineColor: WineColor? = nil) async throws -> WineRecommendation {
+        var filteredInventory = inventory.filter { !$0.isArchived }
+        
+        // Filter by wine color if specified
+        if let preferredColor = preferredWineColor {
+            filteredInventory = filteredInventory.filter { $0.color == preferredColor }
+        }
         
         let url = URL(string: baseURL)!
         var request = URLRequest(url: url)
@@ -66,7 +76,11 @@ class SommelierService {
         request.setValue("2023-06-01", forHTTPHeaderField: "anthropic-version")
         request.setValue(apiKey, forHTTPHeaderField: "x-api-key")
         
-        let inventoryString = try formatInventoryForPrompt(activeInventory)
+        let inventoryString = try formatInventoryForPrompt(filteredInventory)
+        let pairingContext = pairingType == .food ? "dish/meal" : "occasion"
+        let pairingPrompt = pairingType == .food ? 
+            "Please recommend the best possible wine from the inventory to pair with the dish." :
+            "Please recommend the best possible wine from the inventory for this occasion."
         
         let requestBody: [String: Any] = [
             "model": model,
@@ -78,7 +92,7 @@ class SommelierService {
                         [
                             "type": "text",
                             "text": """
-                            You are a professional sommelier. You will be provided with a wine inventory and a dish/meal. Please recommend the best possible wine from the inventory to pair with the dish. Return the response in the following exact JSON format:
+                            You are a professional sommelier. You will be provided with a wine inventory and a \(pairingContext). \(pairingPrompt) Return the response in the following exact JSON format:
 
                             {
                               "recommendedWine": {
@@ -102,7 +116,7 @@ class SommelierService {
                             Wine Inventory:
                             \(inventoryString)
 
-                            Dish/Meal:
+                            \(pairingType == .food ? "Dish/Meal:" : "Occasion:") 
                             \(userQuery)
                             """
                         ]
