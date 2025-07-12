@@ -22,7 +22,12 @@ class WineListViewModel: ObservableObject {
     var filteredWines: [Wine] {
         wines.filter { wine in
             let matchesSearch = searchText.isEmpty || 
-                wine.name.localizedCaseInsensitiveContains(searchText)
+                wine.name.localizedCaseInsensitiveContains(searchText) ||
+                wine.producer?.localizedCaseInsensitiveContains(searchText) == true ||
+                wine.region?.localizedCaseInsensitiveContains(searchText) == true ||
+                wine.varietal?.localizedCaseInsensitiveContains(searchText) == true ||
+                wine.notes?.localizedCaseInsensitiveContains(searchText) == true ||
+                (wine.vintage != nil && String(wine.vintage!).contains(searchText))
             let matchesColor = selectedColor == nil || wine.color == selectedColor
             let matchesStyle = selectedStyle == nil || wine.style == selectedStyle
             let matchesArchiveState = wine.isArchived == showArchived
