@@ -47,8 +47,8 @@ struct WineRowView: View {
                 
                 // Enhanced badges with better spacing
                 HStack(spacing: 8) {
-                    // Color badge with wine glass icon
-                    Label(wine.color.rawValue, systemImage: "wineglass")
+                    // Color badge
+                    Text(wine.color.rawValue)
                         .font(.caption)
                         .padding(.horizontal, 8)
                         .padding(.vertical, 4)
