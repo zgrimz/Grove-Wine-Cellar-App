@@ -82,48 +82,45 @@ class SommelierService {
             "Please recommend the best possible wine from the inventory to pair with the dish." :
             "Please recommend the best possible wine from the inventory for this occasion."
         
-        let requestBody: [String: Any] = [
-            "model": model,
-            "max_tokens": 1024,
-            "messages": [
-                [
-                    "role": "user",
-                    "content": [
-                        [
-                            "type": "text",
-                            "text": """
-                            You are a professional sommelier. You will be provided with a wine inventory and a \(pairingContext). \(pairingPrompt) Return the response in the following exact JSON format:
-
-                            {
-                              "recommendedWine": {
-                                "name": "Wine Name",
-                                "producer": "Producer Name",
-                                "vintage": YYYY
-                              },
-                              "whyThisPair": [
-                                "First reason with wine attributes (acidity, tannin, body, flavor)",
-                                "Second reason with complementary aspects"
-                              ],
-                              "pairingConfidence": N,
-                              "betterPairingRecommendation": {
-                                "wine": "Alternative wine style/variety",
-                                "explanation": "Why this would be better"
-                              }
-                            }
-
-                            Note: betterPairingRecommendation should only be included if pairingConfidence is below 8.
-
-                            Wine Inventory:
-                            \(inventoryString)
-
-                            \(pairingType == .food ? "Dish/Meal:" : "Occasion:") 
-                            \(userQuery)
-                            """
-                        ]
-                    ]
-                ]
-            ]
+let requestBody: [String: Any] = [
+    "model": model,
+    "max_tokens": 1024,
+    "system": """
+        You are a professional sommelier. When given a wine inventory and a \(pairingContext), recommend the best possible wine from that inventory.
+        
+        Return your response in the following exact JSON format:
+        {
+          "recommendedWine": {
+            "name": "Wine Name",
+            "producer": "Producer Name", 
+            "vintage": YYYY
+          },
+          "whyThisPair": [
+            "First reason with wine attributes (acidity, tannin, body, flavor)",
+            "Second reason with complementary aspects"
+          ],
+          "pairingConfidence": N,
+          "betterPairingRecommendation": {
+            "wine": "Alternative wine style/variety", 
+            "explanation": "Why this would be better"
+          }
+        }
+        
+        Note: betterPairingRecommendation should only be included if pairingConfidence is below 8.
+        """,
+    "messages": [
+        [
+            "role": "user",
+            "content": """
+                Available Wine Inventory:
+                \(inventoryString)
+                
+                \(pairingType == .food ? "Please recommend a wine to pair with this dish:" : "Please recommend a wine for this occasion:")
+                \(userQuery)
+                """
         ]
+    ]
+]
         
         request.httpBody = try JSONSerialization.data(withJSONObject: requestBody)
         
