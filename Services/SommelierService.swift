@@ -10,7 +10,7 @@ struct WineRecommendation: Codable {
     struct RecommendedWine: Codable {
         let name: String
         let producer: String
-        let vintage: Int?  // Made optional to handle null values
+        let vintage: String?  // Changed to String to handle "NV", years, etc.
         let id: String  // Wine ID for precise matching
     }
     
@@ -91,7 +91,7 @@ let requestBody: [String: Any] = [
           "recommendedWine": {
             "name": "Wine Name",
             "producer": "Producer Name", 
-            "vintage": YYYY,
+            "vintage": "YYYY",
             "id": "WINE_ID_FROM_INVENTORY"
           },
           "whyThisPair": [
@@ -106,6 +106,7 @@ let requestBody: [String: Any] = [
         }
         
         IMPORTANT: Use the exact "ID" value from the wine inventory for the "id" field in your response.
+        IMPORTANT: For vintage, use the exact value from inventory (could be a year like "2019" or "NV" for non-vintage).
         Note: betterPairingRecommendation should only be included if pairingConfidence is below 8.
         """,
     "messages": [
