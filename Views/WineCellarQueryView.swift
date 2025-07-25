@@ -36,55 +36,27 @@ struct WineCellarQueryView: View {
                                     Text("Recommended Wine")
                                         .font(.headline)
                                         .fontWeight(.semibold)
+                                    
+                                    Spacer()
+                                    
+                                    // Show navigation indicator if wine is in inventory
+                                    if viewModel.matchedWine != nil {
+                                        Image(systemName: "chevron.right")
+                                            .font(.caption)
+                                            .foregroundColor(.secondary)
+                                    }
                                 }
                                 
-                                VStack(alignment: .leading, spacing: 8) {
-                                    Text(recommendation.recommendation)
-                                        .font(.title3)
-                                        .fontWeight(.medium)
-                                    
-                                    HStack {
-                                        Text(recommendation.recommendedWine.producer)
-                                            .font(.subheadline)
-                                            .foregroundColor(.secondary)
-                                        
-                                        Spacer()
-                                        
-                                        if let vintage = recommendation.recommendedWine.vintage {
-                                            Text(String(vintage))
-                                                .font(.caption)
-                                                .fontWeight(.medium)
-                                                .padding(.horizontal, 8)
-                                                .padding(.vertical, 4)
-                                                .background(Color(.systemGray5))
-                                                .clipShape(Capsule())
+                                Group {
+                                    if let matchedWine = viewModel.matchedWine {
+                                        NavigationLink(destination: WineDetailView(wine: matchedWine, onUpdate: { _ in })) {
+                                            wineCardContent(recommendation: recommendation, matchedWine: matchedWine)
                                         }
-                                    }
-                                    
-                                    // Wine type and color badges
-                                    if let wine = viewModel.matchedWine {
-                                        HStack(spacing: 8) {
-                                            Label(wine.color.rawValue, systemImage: "wineglass")
-                                                .font(.caption)
-                                                .padding(.horizontal, 8)
-                                                .padding(.vertical, 4)
-                                                .background(colorFor(wine.color).opacity(0.15))
-                                                .foregroundColor(colorFor(wine.color))
-                                                .clipShape(Capsule())
-                                            
-                                            Text(wine.style.rawValue)
-                                                .font(.caption)
-                                                .padding(.horizontal, 8)
-                                                .padding(.vertical, 4)
-                                                .background(Color(.systemGray5))
-                                                .clipShape(Capsule())
-                                        }
+                                        .buttonStyle(PlainButtonStyle())
+                                    } else {
+                                        wineCardContent(recommendation: recommendation, matchedWine: nil)
                                     }
                                 }
-                                .padding()
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                                .background(Color.accentColor.opacity(0.1))
-                                .cornerRadius(12)
                             }
                             
                             // Confidence indicator
@@ -282,6 +254,57 @@ struct WineCellarQueryView: View {
                     .shadow(radius: 4)
             }
         }
+    }
+    
+    private func wineCardContent(recommendation: WineRecommendation, matchedWine: Wine?) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(recommendation.recommendation)
+                .font(.title3)
+                .fontWeight(.medium)
+                .foregroundColor(.primary)
+            
+            HStack {
+                Text(recommendation.recommendedWine.producer)
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+                
+                Spacer()
+                
+                if let vintage = recommendation.recommendedWine.vintage {
+                    Text(String(vintage))
+                        .font(.caption)
+                        .fontWeight(.medium)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
+                        .background(Color(.systemGray5))
+                        .clipShape(Capsule())
+                }
+            }
+            
+            // Wine type and color badges
+            if let wine = matchedWine {
+                HStack(spacing: 8) {
+                    Label(wine.color.rawValue, systemImage: "wineglass")
+                        .font(.caption)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
+                        .background(colorFor(wine.color).opacity(0.15))
+                        .foregroundColor(colorFor(wine.color))
+                        .clipShape(Capsule())
+                    
+                    Text(wine.style.rawValue)
+                        .font(.caption)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
+                        .background(Color(.systemGray5))
+                        .clipShape(Capsule())
+                }
+            }
+        }
+        .padding()
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color.accentColor.opacity(0.1))
+        .cornerRadius(12)
     }
     
     private func parseRecommendation(from content: String) -> ParsedRecommendation? {

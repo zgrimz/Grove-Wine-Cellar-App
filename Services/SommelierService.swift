@@ -11,6 +11,7 @@ struct WineRecommendation: Codable {
         let name: String
         let producer: String
         let vintage: Int?  // Made optional to handle null values
+        let id: String  // Wine ID for precise matching
     }
     
     struct BetterPairing: Codable {
@@ -78,9 +79,6 @@ class SommelierService {
         
         let inventoryString = try formatInventoryForPrompt(filteredInventory)
         let pairingContext = pairingType == .food ? "dish/meal" : "occasion"
-        let pairingPrompt = pairingType == .food ? 
-            "Please recommend the best possible wine from the inventory to pair with the dish." :
-            "Please recommend the best possible wine from the inventory for this occasion."
         
 let requestBody: [String: Any] = [
     "model": model,
@@ -93,7 +91,8 @@ let requestBody: [String: Any] = [
           "recommendedWine": {
             "name": "Wine Name",
             "producer": "Producer Name", 
-            "vintage": YYYY
+            "vintage": YYYY,
+            "id": "WINE_ID_FROM_INVENTORY"
           },
           "whyThisPair": [
             "First reason with wine attributes (acidity, tannin, body, flavor)",
@@ -106,6 +105,7 @@ let requestBody: [String: Any] = [
           }
         }
         
+        IMPORTANT: Use the exact "ID" value from the wine inventory for the "id" field in your response.
         Note: betterPairingRecommendation should only be included if pairingConfidence is below 8.
         """,
     "messages": [
@@ -140,10 +140,30 @@ let requestBody: [String: Any] = [
     }
     
     private func formatInventoryForPrompt(_ inventory: [Wine]) throws -> String {
-        let encoder = JSONEncoder()
-        encoder.outputFormatting = [.prettyPrinted]
-        let data = try encoder.encode(inventory)
-        return String(data: data, encoding: .utf8) ?? "[]"
+        let inventoryItems = inventory.map { wine in
+            var item = "ID: \(wine.id.uuidString)\n"
+            item += "Name: \(wine.name)\n"
+            if let producer = wine.producer {
+                item += "Producer: \(producer)\n"
+            }
+            if let vintage = wine.vintage {
+                item += "Vintage: \(vintage)\n"
+            }
+            item += "Color: \(wine.color.rawValue)\n"
+            item += "Style: \(wine.style.rawValue)\n"
+            if let region = wine.region {
+                item += "Region: \(region)\n"
+            }
+            if let varietal = wine.varietal {
+                item += "Varietal: \(varietal)\n"
+            }
+            if let notes = wine.notes, !notes.isEmpty {
+                item += "Notes: \(notes)\n"
+            }
+            return item
+        }
+        
+        return inventoryItems.joined(separator: "\n---\n")
     }
     
     private func parseRecommendation(from text: String) throws -> WineRecommendation {

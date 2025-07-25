@@ -31,10 +31,13 @@ class WineCellarQueryViewModel: ObservableObject {
             // Store the structured recommendation
             currentRecommendation = recommendation
             
-            // Find the matching wine in inventory
-            matchedWine = inventory.first { wine in
-                wine.name.localizedCaseInsensitiveContains(recommendation.recommendedWine.name) &&
-                wine.producer?.localizedCaseInsensitiveContains(recommendation.recommendedWine.producer) == true
+            // Find the matching wine in inventory using ID
+            if let wineId = UUID(uuidString: recommendation.recommendedWine.id) {
+                matchedWine = inventory.first { wine in
+                    wine.id == wineId
+                }
+            } else {
+                matchedWine = nil
             }
             
             // Format the recommendation into a readable string for fallback

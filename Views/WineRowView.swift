@@ -20,7 +20,7 @@ struct WineRowView: View {
                     .fill(Color(.systemGray5))
                     .frame(width: 80, height: 80)
                     .overlay(
-                        Image(systemName: "wine.bottle.fill")
+                        Image(systemName: "wineglass.fill")
                             .font(.title2)
                             .foregroundColor(.secondary)
                     )
