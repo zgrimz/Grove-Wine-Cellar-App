@@ -30,6 +30,7 @@
 		6B4710342D07AD4200C8FC37 /* ImageStorageService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B4710112D079E9700C8FC37 /* ImageStorageService.swift */; };
 		6B4710352D07AD5000C8FC37 /* PersistenceController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B4710092D079BB400C8FC37 /* PersistenceController.swift */; };
 		6B4710362D07AD5000C8FC37 /* WineRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B47100A2D079BC900C8FC37 /* WineRepository.swift */; };
+		6B5FE3A02E3849A600664D6C /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B5FE39F2E3849A600664D6C /* SettingsView.swift */; };
 		6B6D8E7B2DC825140065C738 /* AppticsAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = 6B6D8E7A2DC825140065C738 /* AppticsAnalytics */; };
 		6B6D8E7D2DC825140065C738 /* AppticsApiTracker in Frameworks */ = {isa = PBXBuildFile; productRef = 6B6D8E7C2DC825140065C738 /* AppticsApiTracker */; };
 		6B6D8E7F2DC825140065C738 /* AppticsCrossPromotion in Frameworks */ = {isa = PBXBuildFile; productRef = 6B6D8E7E2DC825140065C738 /* AppticsCrossPromotion */; };
@@ -97,6 +98,7 @@
 		6B4710212D07AB3000C8FC37 /* FilterChip.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FilterChip.swift; sourceTree = "<group>"; };
 		6B4710222D07AB3F00C8FC37 /* ImagePicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImagePicker.swift; sourceTree = "<group>"; };
 		6B4710232D07AB7300C8FC37 /* GroveWineCellarApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroveWineCellarApp.swift; sourceTree = "<group>"; };
+		6B5FE39F2E3849A600664D6C /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		6B6D8E842DC82A5A0065C738 /* apptics-config.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "apptics-config.plist"; sourceTree = "<group>"; };
 		6B7258052D3B502000964366 /* ChatMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatMessage.swift; sourceTree = "<group>"; };
 		6B786F202D07B15A0058F4EF /* GroveWineCellar-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = "GroveWineCellar-Info.plist"; sourceTree = "<group>"; };
@@ -225,6 +227,7 @@
 		6B4710162D079F1A00C8FC37 /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				6B5FE39F2E3849A600664D6C /* SettingsView.swift */,
 				6BF1D14D2D3A01FA00716321 /* WineCellarQueryView.swift */,
 				6B47101F2D07AB0100C8FC37 /* Components */,
 				6B47101B2D07AAB300C8FC37 /* WineDetailView.swift */,
@@ -442,6 +445,7 @@
 				6B889A112E14C8FA00DF589F /* WineTypeCard.swift in Sources */,
 				6B47100D2D079BF500C8FC37 /* WineDataModel.xcdatamodeld in Sources */,
 				6B4710352D07AD5000C8FC37 /* PersistenceController.swift in Sources */,
+				6B5FE3A02E3849A600664D6C /* SettingsView.swift in Sources */,
 				6BA349F12D85176200DA23F2 /* WineSweetness.swift in Sources */,
 				6B4710362D07AD5000C8FC37 /* WineRepository.swift in Sources */,
 				6B4710072D079AC700C8FC37 /* RecognizedWineAttributes.swift in Sources */,

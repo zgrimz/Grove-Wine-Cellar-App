@@ -161,7 +161,10 @@ struct WineFormView: View {
                         viewModel.varietal = attributes.varietal ?? ""
                     }
                 } catch {
-                    print("Error processing image: \(error)")
+                    await MainActor.run {
+                        errorMessage = error.localizedDescription
+                        showingError = true
+                    }
                 }
             }
         }

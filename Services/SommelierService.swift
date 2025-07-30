@@ -47,22 +47,22 @@ struct WineRecommendation: Codable {
 
 class SommelierService {
     static let shared = SommelierService()
-    private let apiKey: String
     private let baseURL = "https://api.anthropic.com/v1/messages"
-    private let model = "claude-3-5-sonnet-20241022"
     
-    init() {
-        if let path = Bundle.main.path(forResource: "Config", ofType: "plist"),
-           let xml = FileManager.default.contents(atPath: path),
-           let config = try? PropertyListSerialization.propertyList(from: xml, options: .mutableContainersAndLeaves, format: nil) as? [String: Any] {
-            self.apiKey = config["APIKey"] as? String ?? ""
-        } else {
-            self.apiKey = ""
-            print("Warning: Failed to load API key from Config.plist")
-        }
+    private var apiKey: String {
+        UserDefaults.standard.string(forKey: "claudeAPIKey") ?? ""
+    }
+    
+    private var model: String {
+        UserDefaults.standard.string(forKey: "claudeModel") ?? "claude-sonnet-4-20250514"
     }
     
     func getWineRecommendations(userQuery: String, inventory: [Wine], pairingType: PairingType = .food, preferredWineColor: WineColor? = nil) async throws -> WineRecommendation {
+        // Check if API key is configured
+        guard !apiKey.isEmpty else {
+            throw SommelierError.missingAPIKey
+        }
+        
         var filteredInventory = inventory.filter { !$0.isArchived }
         
         // Filter by wine color if specified
@@ -189,10 +189,24 @@ let requestBody: [String: Any] = [
         }
     }
     
-    enum SommelierError: Error {
+    enum SommelierError: Error, LocalizedError {
+        case missingAPIKey
         case apiError
         case noRecommendations
         case invalidResponseFormat
+        
+        var errorDescription: String? {
+            switch self {
+            case .missingAPIKey:
+                return "Please set your Claude API key in Settings to use AI features."
+            case .apiError:
+                return "Unable to connect to Claude API. Please check your API key and internet connection."
+            case .noRecommendations:
+                return "No wine recommendations were returned from the API."
+            case .invalidResponseFormat:
+                return "Received an unexpected response format from the API."
+            }
+        }
     }
     
     private struct ClaudeResponse: Codable {

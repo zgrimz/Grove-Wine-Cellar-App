@@ -3,18 +3,14 @@ import Foundation
 
 class VisionService {
     static let shared = VisionService()
-    private let apiKey: String
     private let baseURL = "https://api.anthropic.com/v1/messages"
-    private let model = "claude-3-5-sonnet-20241022"
     
-    init() {
-        if let path = Bundle.main.path(forResource: "Config", ofType: "plist"),
-           let config = NSDictionary(contentsOfFile: path) as? [String: Any],
-           let key = config["APIKey"] as? String {
-            self.apiKey = key
-        } else {
-            fatalError("API Key not found in Config.plist")
-        }
+    private var apiKey: String {
+        UserDefaults.standard.string(forKey: "claudeAPIKey") ?? ""
+    }
+    
+    private var model: String {
+        UserDefaults.standard.string(forKey: "claudeModel") ?? "claude-sonnet-4-20250514"
     }
     
     // Intermediate struct to match the API response format
@@ -30,6 +26,11 @@ class VisionService {
     }
 
     func recognizeWineLabel(_ image: UIImage) async throws -> RecognizedWineAttributes {
+        // Check if API key is configured
+        guard !apiKey.isEmpty else {
+            throw VisionError.missingAPIKey
+        }
+        
         // Calculate optimal dimensions based on aspect ratio
         let optimizedImage = image.optimizedForClaude()
         
@@ -136,12 +137,30 @@ class VisionService {
         return attributes
     }
 
-    enum VisionError: Error {
+    enum VisionError: Error, LocalizedError {
+        case missingAPIKey
         case imageProcessingFailed
         case parsingFailed
         case apiError(String)
         case networkError(Error)
         case invalidResponse
+        
+        var errorDescription: String? {
+            switch self {
+            case .missingAPIKey:
+                return "Please set your Claude API key in Settings to use AI features."
+            case .imageProcessingFailed:
+                return "Failed to process the image for analysis."
+            case .parsingFailed:
+                return "Failed to parse the wine information from the image."
+            case .apiError(let message):
+                return "API Error: \(message)"
+            case .networkError(let error):
+                return "Network Error: \(error.localizedDescription)"
+            case .invalidResponse:
+                return "Received an invalid response from the API."
+            }
+        }
     }
 }
 
