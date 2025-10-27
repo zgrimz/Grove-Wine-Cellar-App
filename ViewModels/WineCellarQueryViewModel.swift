@@ -76,4 +76,14 @@ class WineCellarQueryViewModel: ObservableObject {
         pairingType = .food
         selectedWineColor = nil
     }
+
+    func updateWine(_ wine: Wine) async {
+        do {
+            try repository.saveWine(wine)
+            // Update the matched wine to reflect the changes
+            matchedWine = wine
+        } catch {
+            print("Error updating wine: \(error)")
+        }
+    }
 }

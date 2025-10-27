@@ -49,7 +49,11 @@ struct WineCellarQueryView: View {
                                 
                                 Group {
                                     if let matchedWine = viewModel.matchedWine {
-                                        NavigationLink(destination: WineDetailView(wine: matchedWine, onUpdate: { _ in })) {
+                                        NavigationLink(destination: WineDetailView(wine: matchedWine, onUpdate: { updatedWine in
+                                            Task {
+                                                await viewModel.updateWine(updatedWine)
+                                            }
+                                        })) {
                                             wineCardContent(recommendation: recommendation, matchedWine: matchedWine)
                                         }
                                         .buttonStyle(PlainButtonStyle())
