@@ -13,20 +13,26 @@ class WineFormViewModel: ObservableObject {
     @Published var region = ""
     @Published var varietal = ""
     @Published var notes = ""
-    @Published var image: UIImage?
+    @Published var image: UIImage? {
+        didSet {
+            // Any change to image is considered a modification
+            imageWasModified = true
+        }
+    }
     @Published var isProcessing = false
     @Published var showingImagePicker = false
     @Published var showingCamera = false
-    
+
     var isEditMode: Bool { wine != nil }
-    
+    private var imageWasModified = false
+
     private let onSave: (Wine) async -> Void
     private let wine: Wine?
-    
+
     init(onSave: @escaping (Wine) async -> Void, wine: Wine? = nil) {
         self.onSave = onSave
         self.wine = wine
-        
+
         if let wine = wine {
             self.name = wine.name
             self.color = wine.color
@@ -37,10 +43,13 @@ class WineFormViewModel: ObservableObject {
             self.region = wine.region ?? ""
             self.varietal = wine.varietal ?? ""
             self.notes = wine.notes ?? ""
-            
+
             if let imagePath = wine.imagePath {
                 self.image = ImageStorageService.shared.loadImage(fromPath: imagePath)
             }
+
+            // Reset flag after loading existing data - loading isn't a modification
+            self.imageWasModified = false
         }
     }
     
@@ -53,16 +62,25 @@ class WineFormViewModel: ObservableObject {
     
     func save() async throws {
         var imagePath = wine?.imagePath
-        
-        if let newImage = image {
+
+        // Only update image storage if the image was actually modified
+        if imageWasModified {
+            // Delete old image if it exists
             if let oldPath = imagePath {
-                try ImageStorageService.shared.deleteImage(atPath: oldPath)
+                try? ImageStorageService.shared.deleteImage(atPath: oldPath)
             }
-            imagePath = try ImageStorageService.shared.saveImage(newImage, withName: name)
+
+            // Save new image if one is set
+            if let newImage = image {
+                imagePath = try ImageStorageService.shared.saveImage(newImage, withName: name)
+            } else {
+                // User removed the image
+                imagePath = nil
+            }
         }
-        
+
         let vintageInt = Int(vintage)
-        
+
         let wine = Wine(
             id: self.wine?.id ?? UUID(),
             name: name,
@@ -78,7 +96,7 @@ class WineFormViewModel: ObservableObject {
             dateAdded: self.wine?.dateAdded ?? Date(),
             isArchived: self.wine?.isArchived ?? false
         )
-        
+
         await onSave(wine)
     }
 }
