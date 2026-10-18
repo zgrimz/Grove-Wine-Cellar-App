@@ -98,6 +98,15 @@ struct AIFeatureParsingTests {
         #expect(attributes.producer == nil)
     }
 
+    /// Unreadable values must come back nil, not as a default: the form only overwrites fields the
+    /// scan actually returned.
+    @Test func unrecognisedLabelValuesAreLeftOut() throws {
+        let attributes = try #require(VisionService.attributes(from: ["name": "Mystery", "color": "Blue"]))
+        #expect(attributes.color == nil)
+        #expect(attributes.style == nil)
+        #expect(attributes.sweetness == nil)
+    }
+
     @Test func labelWithoutANameIsNotARecognition() {
         #expect(VisionService.attributes(from: ["color": "Red"]) == nil)
     }

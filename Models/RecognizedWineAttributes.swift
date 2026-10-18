@@ -2,8 +2,8 @@ import Foundation
 
 struct RecognizedWineAttributes {
     let name: String
-    let color: WineColor
-    let style: WineStyle
+    let color: WineColor?
+    let style: WineStyle?
     let sweetness: Set<WineSweetness>?
     let producer: String?
     let vintage: Int?

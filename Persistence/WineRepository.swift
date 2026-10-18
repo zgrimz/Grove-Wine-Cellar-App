@@ -36,12 +36,9 @@ class WineRepository: ObservableObject {
         entity.sweetness = Array(wine.sweetness).map { $0.rawValue }.joined(separator: ",")
         entity.producer = wine.producer
         entity.notes = wine.notes
-        // Store vintage as Int16
-        if let vintage = wine.vintage {
-            entity.vintage = Int16(vintage)
-        } else {
-            entity.vintage = 0  // or some sentinel value like -1
-        }
+        // Int16 with 0 meaning "no vintage". `Int16(exactly:)`, not `Int16(_:)`, which traps on
+        // anything over 32767; the form only lets real years through, so this is a backstop.
+        entity.vintage = wine.vintage.flatMap { Int16(exactly: $0) } ?? 0
         entity.region = wine.region
         entity.varietal = wine.varietal
         entity.imagePath = wine.imagePath

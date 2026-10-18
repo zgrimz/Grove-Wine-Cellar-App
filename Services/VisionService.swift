@@ -11,10 +11,9 @@ class VisionService {
         guard !apiKey.isEmpty else { throw VisionError.notConfigured(provider) }
         guard !modelID.isEmpty else { throw VisionError.noModelSelected(provider) }
 
-        // Calculate optimal dimensions based on aspect ratio
-        let optimizedImage = image.optimizedForUpload()
-
-        guard let imageData = optimizedImage.jpegData(compressionQuality: 0.7) else {
+        // 1568 px on the long edge is the most either provider uses for vision input; anything
+        // larger is only downscaled again on arrival.
+        guard let imageData = image.scaledDown(toMaxPixelLength: 1568).jpegData(compressionQuality: 0.7) else {
             throw VisionError.imageProcessingFailed
         }
 
@@ -65,16 +64,16 @@ class VisionService {
     }
 
     /// Turn the tool input into form values, leniently: OpenAI treats enums as hints (see
-    /// ``OpenAIWire``), so a near-miss like "rose" or "red" is matched rather than rejected, and an
-    /// unrecognised color or style falls back to a default the user reviews in the form anyway.
+    /// ``OpenAIWire``), so a near-miss like "rose" or "red" is matched rather than rejected. An
+    /// unrecognised value comes back nil like a missing one, so the form keeps what it already had.
     /// Nil only when there is no name — without one there is nothing to prefill.
     static func attributes(from input: [String: Any]) -> RecognizedWineAttributes? {
         guard let name = text(input["name"]) else { return nil }
         return RecognizedWineAttributes(
             name: name,
-            color: match(input["color"], in: WineColor.allCases) ?? .other,
-            style: match(input["style"], in: WineStyle.allCases) ?? .still,
-            sweetness: match(input["sweetness"], in: WineSweetness.allCases).map { Set([$0]) } ?? Set(),
+            color: match(input["color"], in: WineColor.allCases),
+            style: match(input["style"], in: WineStyle.allCases),
+            sweetness: match(input["sweetness"], in: WineSweetness.allCases).map { Set([$0]) },
             producer: text(input["producer"]),
             vintage: year(input["vintage"]),
             region: text(input["region"]),
@@ -121,46 +120,6 @@ class VisionService {
                 return error.summary(provider: provider)
             case .noLabelFound:
                 return "Couldn't read a wine label in this photo."
-            }
-        }
-    }
-}
-
-// Helper extension for image optimization
-private extension UIImage {
-    /// Resized to the long-edge limits both providers recommend for vision input, so a full-size
-    /// camera photo isn't uploaded only to be downscaled on arrival.
-    func optimizedForUpload() -> UIImage {
-        let aspectRatio = size.width / size.height
-        var targetSize: CGSize
-
-        // Determine optimal dimensions based on aspect ratio
-        switch aspectRatio {
-        case 0.9...1.1: // ~1:1
-            targetSize = CGSize(width: 1092, height: 1092)
-        case 0.7...0.8: // ~3:4
-            targetSize = CGSize(width: 951, height: 1268)
-        case 0.6...0.7: // ~2:3
-            targetSize = CGSize(width: 896, height: 1344)
-        case 0.5...0.6: // ~9:16
-            targetSize = CGSize(width: 819, height: 1456)
-        case 0.4...0.5: // ~1:2
-            targetSize = CGSize(width: 784, height: 1568)
-        default:
-            // For other aspect ratios, maintain aspect ratio with max dimension of 1568
-            if aspectRatio > 1 {
-                let width = min(1568.0, size.width)
-                targetSize = CGSize(width: width, height: width / aspectRatio)
-            } else {
-                let height = min(1568.0, size.height)
-                targetSize = CGSize(width: height * aspectRatio, height: height)
-            }
-        }
-
-        return autoreleasepool {
-            let renderer = UIGraphicsImageRenderer(size: targetSize)
-            return renderer.image { _ in
-                draw(in: CGRect(origin: .zero, size: targetSize))
             }
         }
     }

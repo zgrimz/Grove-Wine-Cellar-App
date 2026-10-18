@@ -67,6 +67,11 @@ struct WineFormView: View {
                 TextField("Producer", text: $viewModel.producer)
                 TextField("Vintage", text: $viewModel.vintage)
                     .keyboardType(.numberPad)
+                if !viewModel.isVintageValid {
+                    Text("Enter a four-digit year, or leave it blank for non-vintage.")
+                        .font(.footnote)
+                        .foregroundStyle(.red)
+                }
                 TextField("Region", text: $viewModel.region)
                 TextField("Varietal", text: $viewModel.varietal)
             }
@@ -88,37 +93,24 @@ struct WineFormView: View {
                 Button("Save") {
                     save()
                 }
-                .disabled(viewModel.name.isEmpty)
+                .disabled(!viewModel.canSave)
             }
         }
         .sheet(isPresented: $viewModel.showingCamera) {
-            ImagePicker(image: $viewModel.image, sourceType: .camera)
-                .onDisappear {
-                    processImageIfNeeded()
-                }
+            ImagePicker(sourceType: .camera, onPick: photoPicked)
         }
         .sheet(isPresented: $viewModel.showingImagePicker) {
-            ImagePicker(image: $viewModel.image, sourceType: .photoLibrary)
-                .onDisappear {
-                    processImageIfNeeded()
-                }
+            ImagePicker(sourceType: .photoLibrary, onPick: photoPicked)
         }
         .sheet(isPresented: $showingSweetnessSelection) {
             SweetnessSelectionView(selectedSweetness: $viewModel.sweetness)
         }
-        .actionSheet(isPresented: $showingImageOptions) {
-            ActionSheet(
-                title: Text("Add Photo"),
-                buttons: [
-                    .default(Text("Take Photo")) {
-                        viewModel.showingCamera = true
-                    },
-                    .default(Text("Choose from Library")) {
-                        viewModel.showingImagePicker = true
-                    },
-                    .cancel()
-                ]
-            )
+        .confirmationDialog("Add Photo", isPresented: $showingImageOptions) {
+            if ImagePicker.isAvailable(.camera) {
+                Button("Take Photo") { viewModel.showingCamera = true }
+            }
+            Button("Choose from Library") { viewModel.showingImagePicker = true }
+            Button("Cancel", role: .cancel) {}
         }
         .alert("Error", isPresented: $showingError) {
             Button("OK", role: .cancel) { }
@@ -146,28 +138,18 @@ struct WineFormView: View {
             .joined(separator: ", ")
     }
     
-    private func processImageIfNeeded() {
+    /// Runs only for a newly picked photo. It used to hang off the picker's `onDisappear`, which
+    /// also fires on Cancel — re-scanning the existing photo and overwriting the user's edits.
+    private func photoPicked(_ image: UIImage) {
+        viewModel.image = image
         // With AI off, a photo is just the wine's photo — no scan, and no error asking for a key.
-        if aiSettings.isEnabled, let image = viewModel.image {
-            Task {
-                do {
-                    let attributes = try await viewModel.processImage(image, settings: aiSettings)
-                    await MainActor.run {
-                        viewModel.name = attributes.name
-                        viewModel.color = attributes.color
-                        viewModel.style = attributes.style
-                        viewModel.sweetness = attributes.sweetness ?? []
-                        viewModel.producer = attributes.producer ?? ""
-                        viewModel.vintage = attributes.vintage.map(String.init) ?? ""
-                        viewModel.region = attributes.region ?? ""
-                        viewModel.varietal = attributes.varietal ?? ""
-                    }
-                } catch {
-                    await MainActor.run {
-                        errorMessage = error.localizedDescription
-                        showingError = true
-                    }
-                }
+        guard aiSettings.isEnabled else { return }
+        Task {
+            do {
+                try await viewModel.scanLabel(image, settings: aiSettings)
+            } catch {
+                errorMessage = error.localizedDescription
+                showingError = true
             }
         }
     }

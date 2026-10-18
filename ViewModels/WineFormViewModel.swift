@@ -24,6 +24,24 @@ class WineFormViewModel: ObservableObject {
     @Published var showingCamera = false
 
     var isEditMode: Bool { wine != nil }
+
+    /// The vintage as a year, or nil when the field is empty or isn't a plausible one.
+    var vintageYear: Int? {
+        guard let year = Int(vintage.trimmingCharacters(in: .whitespaces)) else { return nil }
+        let nextYear = Calendar.current.component(.year, from: Date()) + 1
+        return (1000...nextYear).contains(year) ? year : nil
+    }
+
+    /// Empty is fine (non-vintage); anything else has to be a real year. The store keeps vintages
+    /// as Int16, so an unchecked "99999" would have crashed the save.
+    var isVintageValid: Bool {
+        vintage.trimmingCharacters(in: .whitespaces).isEmpty || vintageYear != nil
+    }
+
+    /// Save waits out a running scan, which would otherwise overwrite fields after the fact.
+    var canSave: Bool {
+        !name.trimmingCharacters(in: .whitespaces).isEmpty && isVintageValid && !isProcessing
+    }
     private var imageWasModified = false
 
     private let onSave: (Wine) async -> Void
@@ -53,13 +71,27 @@ class WineFormViewModel: ObservableObject {
         }
     }
     
-    func processImage(_ image: UIImage, settings: AISettings) async throws -> RecognizedWineAttributes {
+    /// Read the label in a newly picked photo into the form.
+    func scanLabel(_ image: UIImage, settings: AISettings) async throws {
         isProcessing = true
         defer { isProcessing = false }
         
-        return try await VisionService.shared.recognizeWineLabel(image, provider: settings.provider,
-                                                                 apiKey: settings.trimmedKey,
-                                                                 modelID: settings.labelScanningModelID)
+        apply(try await VisionService.shared.recognizeWineLabel(image, provider: settings.provider,
+                                                                apiKey: settings.trimmedKey,
+                                                                modelID: settings.labelScanningModelID))
+    }
+
+    /// Fill in what the scan read and leave everything else alone, so a detail the label doesn't
+    /// show never blanks one the user already entered.
+    private func apply(_ attributes: RecognizedWineAttributes) {
+        name = attributes.name
+        if let color = attributes.color { self.color = color }
+        if let style = attributes.style { self.style = style }
+        if let sweetness = attributes.sweetness { self.sweetness = sweetness }
+        if let producer = attributes.producer { self.producer = producer }
+        if let vintage = attributes.vintage { self.vintage = String(vintage) }
+        if let region = attributes.region { self.region = region }
+        if let varietal = attributes.varietal { self.varietal = varietal }
     }
     
     func save() async throws {
@@ -74,14 +106,12 @@ class WineFormViewModel: ObservableObject {
 
             // Save new image if one is set
             if let newImage = image {
-                imagePath = try ImageStorageService.shared.saveImage(newImage, withName: name)
+                imagePath = try ImageStorageService.shared.saveImage(newImage)
             } else {
                 // User removed the image
                 imagePath = nil
             }
         }
-
-        let vintageInt = Int(vintage)
 
         let wine = Wine(
             id: self.wine?.id ?? UUID(),
@@ -90,7 +120,7 @@ class WineFormViewModel: ObservableObject {
             style: style,
             sweetness: sweetness,
             producer: producer.isEmpty ? nil : producer,
-            vintage: vintageInt,
+            vintage: vintageYear,
             region: region.isEmpty ? nil : region,
             varietal: varietal.isEmpty ? nil : varietal,
             notes: notes.isEmpty ? nil : notes,
