@@ -1,0 +1,10 @@
+Config.plist
+apptics-config.plist
+
+# Xcode per-user state
+xcuserdata/
+DerivedData/
+
+# Editors and OS
+.vscode/
+.DS_Store
