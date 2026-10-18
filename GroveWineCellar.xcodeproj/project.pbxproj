@@ -48,7 +48,6 @@
 		6BA349ED2D85175600DA23F2 /* WineColor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6BA349EC2D85175600DA23F2 /* WineColor.swift */; };
 		6BA349EF2D85175C00DA23F2 /* WineStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6BA349EE2D85175C00DA23F2 /* WineStyle.swift */; };
 		6BA349F12D85176200DA23F2 /* WineSweetness.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6BA349F02D85176200DA23F2 /* WineSweetness.swift */; };
-		6BA349F32D8519E500DA23F2 /* Config.plist in Resources */ = {isa = PBXBuildFile; fileRef = 6BA349F22D8519E500DA23F2 /* Config.plist */; };
 		6BF1D14A2D3A01C700716321 /* SommelierService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6BF1D1492D3A01C700716321 /* SommelierService.swift */; };
 		6BF1D14C2D3A01D900716321 /* WineCellarQueryViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6BF1D14B2D3A01D900716321 /* WineCellarQueryViewModel.swift */; };
 		6BF1D14E2D3A01FA00716321 /* WineCellarQueryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6BF1D14D2D3A01FA00716321 /* WineCellarQueryView.swift */; };
@@ -122,7 +121,6 @@
 		6BA349EC2D85175600DA23F2 /* WineColor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WineColor.swift; sourceTree = "<group>"; };
 		6BA349EE2D85175C00DA23F2 /* WineStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WineStyle.swift; sourceTree = "<group>"; };
 		6BA349F02D85176200DA23F2 /* WineSweetness.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WineSweetness.swift; sourceTree = "<group>"; };
-		6BA349F22D8519E500DA23F2 /* Config.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Config.plist; sourceTree = "<group>"; };
 		6BF1D1492D3A01C700716321 /* SommelierService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SommelierService.swift; sourceTree = "<group>"; };
 		6BF1D14B2D3A01D900716321 /* WineCellarQueryViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WineCellarQueryViewModel.swift; sourceTree = "<group>"; };
 		6BF1D14D2D3A01FA00716321 /* WineCellarQueryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WineCellarQueryView.swift; sourceTree = "<group>"; };
@@ -185,7 +183,6 @@
 			children = (
 				6B889A132E14C97E00DF589F /* Utilities */,
 				6B6D8E842DC82A5A0065C738 /* apptics-config.plist */,
-				6BA349F22D8519E500DA23F2 /* Config.plist */,
 				6B2144DE2D3DF0C6006DB146 /* Media.xcassets */,
 				6B786F212D07B22D0058F4EF /* GroveWineCellar.entitlements */,
 				6B786F202D07B15A0058F4EF /* GroveWineCellar-Info.plist */,
@@ -447,7 +444,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				6BA349F32D8519E500DA23F2 /* Config.plist in Resources */,
 				6B6D8E852DC82A5A0065C738 /* apptics-config.plist in Resources */,
 				6B2144DF2D3DF0C6006DB146 /* Media.xcassets in Resources */,
 			);
