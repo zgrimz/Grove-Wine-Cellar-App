@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		C0FFEF26B2A637F7DC4079D5 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = C0FFEE26B2A637F7DC4079D5 /* PrivacyInfo.xcprivacy */; };
 		6B2144DF2D3DF0C6006DB146 /* Media.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 6B2144DE2D3DF0C6006DB146 /* Media.xcassets */; };
 		6B470FFE2D079A8E00C8FC37 /* WineType.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B470FFC2D079A8C00C8FC37 /* WineType.swift */; };
 		6B4710012D079AA000C8FC37 /* WineSubType.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B470FFF2D079A9A00C8FC37 /* WineSubType.swift */; };
@@ -74,6 +75,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		C0FFEE26B2A637F7DC4079D5 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		6B2144DE2D3DF0C6006DB146 /* Media.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Media.xcassets; sourceTree = "<group>"; };
 		6B470FC82D079A6000C8FC37 /* GroveWineCellar.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = GroveWineCellar.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		6B470FDE2D079A6200C8FC37 /* GroveWineCellarTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = GroveWineCellarTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -169,6 +171,7 @@
 		6B470FBF2D079A6000C8FC37 = {
 			isa = PBXGroup;
 			children = (
+				C0FFEE26B2A637F7DC4079D5 /* PrivacyInfo.xcprivacy */,
 				6B889A132E14C97E00DF589F /* Utilities */,
 				6B2144DE2D3DF0C6006DB146 /* Media.xcassets */,
 				6B786F212D07B22D0058F4EF /* GroveWineCellar.entitlements */,
@@ -417,6 +420,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				C0FFEF26B2A637F7DC4079D5 /* PrivacyInfo.xcprivacy in Resources */,
 				6B2144DF2D3DF0C6006DB146 /* Media.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -671,7 +675,7 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SDKROOT = auto;
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator xros xrsimulator";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2,7";
@@ -715,7 +719,7 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SDKROOT = auto;
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator xros xrsimulator";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2,7";
@@ -737,7 +741,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = grovehouse.xyz.GroveWineCellarTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = auto;
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator xros xrsimulator";
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2,7";
@@ -760,7 +764,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = grovehouse.xyz.GroveWineCellarTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = auto;
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator xros xrsimulator";
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2,7";
@@ -782,7 +786,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = grovehouse.xyz.GroveWineCellarUITests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = auto;
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator xros xrsimulator";
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2,7";
@@ -804,7 +808,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = grovehouse.xyz.GroveWineCellarUITests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = auto;
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator xros xrsimulator";
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2,7";
