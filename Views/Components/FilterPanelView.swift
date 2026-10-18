@@ -6,7 +6,7 @@ struct FilterPanelView: View {
     @Binding var isPresented: Bool
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             VStack(alignment: .leading, spacing: 20) {
                 VStack(alignment: .leading, spacing: 12) {
                     Text("Wine Color")
@@ -53,29 +53,22 @@ struct FilterPanelView: View {
                 }
                 
                 Spacer()
-                
-                HStack {
-                    Button("Clear All") {
-                        selectedColor = nil
-                        selectedStyle = nil
-                    }
-                    .foregroundColor(.red)
-                    
-                    Spacer()
-                    
-                    Button("Done") {
-                        isPresented = false
-                    }
-                    .fontWeight(.semibold)
-                }
-                .padding(.bottom)
             }
             .padding()
             .navigationTitle("Filter Options")
             .navigationBarTitleDisplayMode(.inline)
-            .navigationBarItems(trailing: Button("Done") {
-                isPresented = false
-            })
+            .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    Button("Clear All", role: .destructive) {
+                        selectedColor = nil
+                        selectedStyle = nil
+                    }
+                    .disabled(selectedColor == nil && selectedStyle == nil)
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Done") { isPresented = false }
+                }
+            }
         }
     }
 }

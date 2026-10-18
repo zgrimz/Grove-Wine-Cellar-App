@@ -126,14 +126,14 @@ struct WineDetailView: View {
         }
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
-            ToolbarItem(placement: .navigationBarTrailing) {
+            ToolbarItem(placement: .topBarTrailing) {
                 Button("Edit") {
                     showingEditSheet = true
                 }
             }
         }
         .sheet(isPresented: $showingEditSheet) {
-            NavigationView {
+            NavigationStack {
                 WineFormView(wine: wine) { try store.update($0) }
             }
         }

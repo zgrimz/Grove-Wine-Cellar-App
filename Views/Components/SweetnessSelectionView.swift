@@ -6,7 +6,7 @@ struct SweetnessSelectionView: View {
     @Binding var selectedSweetness: Set<WineSweetness>
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             List {
                 ForEach(WineSweetness.allCases, id: \.self) { sweetness in
                     Button(action: {
@@ -29,11 +29,11 @@ struct SweetnessSelectionView: View {
                 }
             }
             .navigationTitle("Sweetness Levels")
-            .navigationBarItems(
-                trailing: Button("Done") {
-                    dismiss()
+            .toolbar {
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Done") { dismiss() }
                 }
-            )
+            }
         }
     }
 }

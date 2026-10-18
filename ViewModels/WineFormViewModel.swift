@@ -21,7 +21,7 @@ final class WineFormViewModel {
         }
     }
     var isProcessing = false
-    var showingImagePicker = false
+    var showingPhotoLibrary = false
     var showingCamera = false
 
     var isEditMode: Bool { wine != nil }

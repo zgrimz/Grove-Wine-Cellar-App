@@ -1,20 +1,21 @@
 import SwiftUI
 import UIKit
 
-struct ImagePicker: UIViewControllerRepresentable {
-    let sourceType: UIImagePickerController.SourceType
-    /// Called only when the user actually picks or takes a photo — never on cancel.
-    let onPick: (UIImage) -> Void
+/// The camera, wrapped for SwiftUI. Photo library picking uses `PhotosPicker`, which needs no
+/// permission prompt; SwiftUI still has no camera equivalent.
+struct CameraPicker: UIViewControllerRepresentable {
+    /// Called only when the user actually takes a photo — never on cancel.
+    let onCapture: (UIImage) -> Void
 
-    /// `UIImagePickerController` raises an exception for a source type the device lacks — the
-    /// camera in the Simulator, on visionOS, or on a Mac — so check before offering one.
-    static func isAvailable(_ sourceType: UIImagePickerController.SourceType) -> Bool {
-        UIImagePickerController.isSourceTypeAvailable(sourceType)
+    /// `UIImagePickerController` raises an exception when the device has no camera — the
+    /// Simulator, visionOS, a Mac — so check before offering it.
+    static var isAvailable: Bool {
+        UIImagePickerController.isSourceTypeAvailable(.camera)
     }
 
     func makeUIViewController(context: Context) -> UIImagePickerController {
         let picker = UIImagePickerController()
-        picker.sourceType = sourceType
+        picker.sourceType = .camera
         picker.delegate = context.coordinator
         return picker
     }
@@ -26,9 +27,9 @@ struct ImagePicker: UIViewControllerRepresentable {
     }
 
     class Coordinator: NSObject, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
-        let parent: ImagePicker
+        let parent: CameraPicker
 
-        init(_ parent: ImagePicker) {
+        init(_ parent: CameraPicker) {
             self.parent = parent
         }
 
@@ -37,7 +38,7 @@ struct ImagePicker: UIViewControllerRepresentable {
             didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey: Any]
         ) {
             if let image = info[.originalImage] as? UIImage {
-                parent.onPick(image)
+                parent.onCapture(image)
             }
             picker.dismiss(animated: true)
         }

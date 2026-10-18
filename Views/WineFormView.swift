@@ -1,3 +1,4 @@
+import PhotosUI
 import SwiftUI
 import UIKit
 
@@ -6,6 +7,7 @@ struct WineFormView: View {
     @Environment(AISettings.self) private var aiSettings
     @State private var viewModel: WineFormViewModel
     @State private var showingImageOptions = false
+    @State private var libraryItem: PhotosPickerItem?
     @State private var errorMessage: String?
     @State private var showingSweetnessSelection = false
     
@@ -85,32 +87,42 @@ struct WineFormView: View {
         .navigationTitle(viewModel.isEditMode ? "Edit Wine" : "Add Wine")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
-            ToolbarItem(placement: .navigationBarLeading) {
+            ToolbarItem(placement: .cancellationAction) {
                 Button("Cancel") {
                     dismiss()
                 }
             }
-            ToolbarItem(placement: .navigationBarTrailing) {
+            ToolbarItem(placement: .confirmationAction) {
                 Button("Save") {
                     save()
                 }
                 .disabled(!viewModel.canSave)
             }
         }
-        .sheet(isPresented: $viewModel.showingCamera) {
-            ImagePicker(sourceType: .camera, onPick: photoPicked)
+        .fullScreenCover(isPresented: $viewModel.showingCamera) {
+            CameraPicker(onCapture: photoPicked)
+                .ignoresSafeArea()
         }
-        .sheet(isPresented: $viewModel.showingImagePicker) {
-            ImagePicker(sourceType: .photoLibrary, onPick: photoPicked)
+        .photosPicker(isPresented: $viewModel.showingPhotoLibrary, selection: $libraryItem, matching: .images)
+        .onChange(of: libraryItem) { _, item in
+            guard let item else { return }
+            libraryItem = nil
+            Task {
+                if let data = try? await item.loadTransferable(type: Data.self), let image = UIImage(data: data) {
+                    photoPicked(image)
+                } else {
+                    errorMessage = "Couldn't load that photo."
+                }
+            }
         }
         .sheet(isPresented: $showingSweetnessSelection) {
             SweetnessSelectionView(selectedSweetness: $viewModel.sweetness)
         }
         .confirmationDialog("Add Photo", isPresented: $showingImageOptions) {
-            if ImagePicker.isAvailable(.camera) {
+            if CameraPicker.isAvailable {
                 Button("Take Photo") { viewModel.showingCamera = true }
             }
-            Button("Choose from Library") { viewModel.showingImagePicker = true }
+            Button("Choose from Library") { viewModel.showingPhotoLibrary = true }
             Button("Cancel", role: .cancel) {}
         }
         .errorAlert(message: $errorMessage)

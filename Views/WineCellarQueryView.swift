@@ -48,7 +48,7 @@ struct WineCellarQueryView: View {
                             
                             Group {
                                 if let matchedWine = matchedWine(for: recommendation) {
-                                    NavigationLink(destination: WineDetailView(wineID: matchedWine.id)) {
+                                    NavigationLink(value: Route.wine(matchedWine.id)) {
                                         wineCardContent(recommendation: recommendation, matchedWine: matchedWine)
                                     }
                                     .buttonStyle(PlainButtonStyle())

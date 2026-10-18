@@ -30,10 +30,6 @@ struct WineListView: View {
 
     var body: some View {
         List {
-            SearchBarView(text: $searchText)
-                .listRowInsets(EdgeInsets())
-                .listRowBackground(Color.clear)
-
             HStack {
                 ColorFilterView(selectedColor: $selectedColor)
 
@@ -52,7 +48,7 @@ struct WineListView: View {
             .listRowBackground(Color.clear)
 
             ForEach(filteredWines) { wine in
-                NavigationLink(destination: WineDetailView(wineID: wine.id)) {
+                NavigationLink(value: Route.wine(wine.id)) {
                     WineRowView(wine: wine)
                 }
                 .swipeActions(edge: .trailing, allowsFullSwipe: false) {
@@ -92,15 +88,16 @@ struct WineListView: View {
             .padding(.vertical)
         }
         .navigationTitle("Grove Wine Cellar")
+        .searchable(text: $searchText, prompt: "Search wines")
         .toolbar {
-            ToolbarItem(placement: .navigationBarTrailing) {
-                Button(action: { showingAddWine = true }) {
-                    Image(systemName: "plus")
+            ToolbarItem(placement: .topBarTrailing) {
+                Button { showingAddWine = true } label: {
+                    Label("Add Wine", systemImage: "plus")
                 }
             }
         }
         .sheet(isPresented: $showingAddWine) {
-            NavigationView {
+            NavigationStack {
                 WineFormView { try store.add($0) }
             }
         }
