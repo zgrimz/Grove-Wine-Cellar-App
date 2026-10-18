@@ -44,7 +44,7 @@ struct WineDetailView: View {
                     }
                     
                     HStack {
-                        Badge(text: wine.color.rawValue, color: colorFor(wine.color))
+                        Badge(text: wine.color.rawValue, color: wine.color.tint)
                         Badge(text: wine.style.rawValue, color: .gray)
                     }
                     
@@ -52,7 +52,7 @@ struct WineDetailView: View {
                         VStack(alignment: .leading, spacing: 4) {
                             Text("Sweetness:")
                                 .font(.subheadline)
-                                .foregroundColor(.secondary)
+                                .foregroundStyle(.secondary)
                             
                             HStack {
                                 ForEach(Array(wine.sweetness).sorted(by: { $0.rawValue < $1.rawValue }), id: \.self) { sweetness in
@@ -104,8 +104,8 @@ struct WineDetailView: View {
                         .frame(maxWidth: .infinity)
                         .padding()
                         .background(Color.orange.opacity(0.1))
-                        .foregroundColor(.orange)
-                        .cornerRadius(10)
+                        .foregroundStyle(.orange)
+                        .clipShape(.rect(cornerRadius: 10))
                     }
                     
                     Button(role: .destructive) {
@@ -118,8 +118,8 @@ struct WineDetailView: View {
                         .frame(maxWidth: .infinity)
                         .padding()
                         .background(Color.red.opacity(0.1))
-                        .foregroundColor(.red)
-                        .cornerRadius(10)
+                        .foregroundStyle(.red)
+                        .clipShape(.rect(cornerRadius: 10))
                     }
                 }
                 .padding()
@@ -162,21 +162,6 @@ struct WineDetailView: View {
             try action()
         } catch {
             errorMessage = error.localizedDescription
-        }
-    }
-    
-    private func colorFor(_ color: WineColor) -> Color {
-        switch color {
-        case .red:
-            return .red
-        case .white:
-            return .yellow
-        case .rose:
-            return .pink
-        case .orange:
-            return .orange
-        case .other:
-            return .gray
         }
     }
 }

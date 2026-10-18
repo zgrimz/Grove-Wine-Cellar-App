@@ -21,7 +21,7 @@ struct WineCellarQueryView: View {
                         HStack {
                             Image(systemName: "wineglass.fill")
                                 .font(.title2)
-                                .foregroundColor(.accentColor)
+                                .foregroundStyle(Color.accentColor)
                             Text("Your Pairing Recommendation")
                                 .font(.title2)
                                 .fontWeight(.semibold)
@@ -31,7 +31,7 @@ struct WineCellarQueryView: View {
                         VStack(alignment: .leading, spacing: 12) {
                             HStack {
                                 Image(systemName: "star.fill")
-                                    .foregroundColor(.yellow)
+                                    .foregroundStyle(.yellow)
                                 Text("Recommended Wine")
                                     .font(.headline)
                                     .fontWeight(.semibold)
@@ -42,7 +42,7 @@ struct WineCellarQueryView: View {
                                 if matchedWine(for: recommendation) != nil {
                                     Image(systemName: "chevron.right")
                                         .font(.caption)
-                                        .foregroundColor(.secondary)
+                                        .foregroundStyle(.secondary)
                                 }
                             }
                             
@@ -51,7 +51,7 @@ struct WineCellarQueryView: View {
                                     NavigationLink(value: Route.wine(matchedWine.id)) {
                                         wineCardContent(recommendation: recommendation, matchedWine: matchedWine)
                                     }
-                                    .buttonStyle(PlainButtonStyle())
+                                    .buttonStyle(.plain)
                                 } else {
                                     wineCardContent(recommendation: recommendation, matchedWine: nil)
                                 }
@@ -66,7 +66,7 @@ struct WineCellarQueryView: View {
                             
                             HStack {
                                 ProgressView(value: Double(recommendation.pairingConfidence), total: 10)
-                                    .progressViewStyle(LinearProgressViewStyle(tint: recommendation.pairingConfidence >= 8 ? .green : recommendation.pairingConfidence >= 6 ? .orange : .red))
+                                    .tint(recommendation.pairingConfidence >= 8 ? .green : recommendation.pairingConfidence >= 6 ? .orange : .red)
                                 Text("\(recommendation.pairingConfidence)/10")
                                     .font(.caption)
                                     .fontWeight(.medium)
@@ -83,7 +83,7 @@ struct WineCellarQueryView: View {
                                 ForEach(recommendation.whyThisPair, id: \.self) { reason in
                                     HStack(alignment: .top, spacing: 8) {
                                         Image(systemName: "checkmark.circle.fill")
-                                            .foregroundColor(.green)
+                                            .foregroundStyle(.green)
                                             .font(.caption)
                                         Text(reason)
                                             .font(.body)
@@ -109,7 +109,7 @@ struct WineCellarQueryView: View {
                                 .padding()
                                 .frame(maxWidth: .infinity, alignment: .leading)
                                 .background(Color.orange.opacity(0.1))
-                                .cornerRadius(12)
+                                .clipShape(.rect(cornerRadius: 12))
                             }
                         }
                     }
@@ -134,7 +134,7 @@ struct WineCellarQueryView: View {
                         
                         Text("Get personalized recommendations from your cellar")
                             .font(.subheadline)
-                            .foregroundColor(.secondary)
+                            .foregroundStyle(.secondary)
                             .multilineTextAlignment(.center)
                     }
                     
@@ -148,7 +148,7 @@ struct WineCellarQueryView: View {
                             Text("Food & Meals").tag(PairingType.food)
                             Text("Special Occasions").tag(PairingType.occasion)
                         }
-                        .pickerStyle(SegmentedPickerStyle())
+                        .pickerStyle(.segmented)
                     }
                     
                     // Wine type as 2x3 grid with better visual design
@@ -158,28 +158,10 @@ struct WineCellarQueryView: View {
                             .fontWeight(.medium)
                         
                         LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 2), spacing: 12) {
-                            WineTypeCard(title: "Any", isSelected: viewModel.selectedWineColor == nil) {
-                                viewModel.selectedWineColor = nil
-                            }
-                            
-                            WineTypeCard(title: "Red", color: colorFor(.red), isSelected: viewModel.selectedWineColor == .red) {
-                                viewModel.selectedWineColor = .red
-                            }
-                            
-                            WineTypeCard(title: "White", color: colorFor(.white), isSelected: viewModel.selectedWineColor == .white) {
-                                viewModel.selectedWineColor = .white
-                            }
-                            
-                            WineTypeCard(title: "Rosé", color: colorFor(.rose), isSelected: viewModel.selectedWineColor == .rose) {
-                                viewModel.selectedWineColor = .rose
-                            }
-                            
-                            WineTypeCard(title: "Orange", color: colorFor(.orange), isSelected: viewModel.selectedWineColor == .orange) {
-                                viewModel.selectedWineColor = .orange
-                            }
-                            
-                            WineTypeCard(title: "Other", color: colorFor(.other), isSelected: viewModel.selectedWineColor == .other) {
-                                viewModel.selectedWineColor = .other
+                            ForEach([nil] + WineColor.allCases.map(Optional.some), id: \.self) { color in
+                                WineTypeCard(wineColor: color, isSelected: viewModel.selectedWineColor == color) {
+                                    viewModel.selectedWineColor = color
+                                }
                             }
                         }
                     }
@@ -188,7 +170,7 @@ struct WineCellarQueryView: View {
                     VStack(spacing: 16) {
                         HStack {
                             Image(systemName: "magnifyingglass")
-                                .foregroundColor(.secondary)
+                                .foregroundStyle(.secondary)
                             
                             TextField(viewModel.pairingType == .food ? "Enter food or meal..." : "Enter occasion...", text: $viewModel.foodInput)
                                 .font(.body)
@@ -197,7 +179,7 @@ struct WineCellarQueryView: View {
                         }
                         .padding()
                         .background(Color(.systemGray6))
-                        .cornerRadius(12)
+                        .clipShape(.rect(cornerRadius: 12))
                         .onTapGesture {
                             isFocused = true
                         }
@@ -222,8 +204,8 @@ struct WineCellarQueryView: View {
                             .frame(maxWidth: .infinity)
                             .padding()
                             .background(viewModel.canRequestPairing ? Color.accentColor : Color.secondary)
-                            .foregroundColor(.white)
-                            .cornerRadius(12)
+                            .foregroundStyle(.white)
+                            .clipShape(.rect(cornerRadius: 12))
                         }
                         .disabled(!viewModel.canRequestPairing)
                     }
@@ -233,7 +215,8 @@ struct WineCellarQueryView: View {
                 .padding()
                 }
                 .scrollDismissesKeyboard(.interactively)
-                .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillShowNotification)) { _ in
+                .onChange(of: isFocused) { _, focused in
+                    guard focused else { return }
                     withAnimation(.easeInOut(duration: 0.5)) {
                         proxy.scrollTo("inputSection", anchor: .bottom)
                     }
@@ -246,8 +229,7 @@ struct WineCellarQueryView: View {
             if viewModel.isLoading {
                 ProgressView()
                     .padding()
-                    .background(Color.secondary.colorInvert())
-                    .cornerRadius(8)
+                    .background(.regularMaterial, in: .rect(cornerRadius: 8))
                     .shadow(radius: 4)
             }
         }
@@ -258,12 +240,12 @@ struct WineCellarQueryView: View {
             Text(recommendation.recommendation)
                 .font(.title3)
                 .fontWeight(.medium)
-                .foregroundColor(.primary)
+                .foregroundStyle(.primary)
             
             HStack {
                 Text(recommendation.recommendedWine.producer)
                     .font(.subheadline)
-                    .foregroundColor(.secondary)
+                    .foregroundStyle(.secondary)
                 
                 Spacer()
                 
@@ -285,8 +267,8 @@ struct WineCellarQueryView: View {
                         .font(.caption)
                         .padding(.horizontal, 8)
                         .padding(.vertical, 4)
-                        .background(colorFor(wine.color).opacity(0.15))
-                        .foregroundColor(colorFor(wine.color))
+                        .background(wine.color.tint.opacity(0.15))
+                        .foregroundStyle(wine.color.tint)
                         .clipShape(Capsule())
                     
                     Text(wine.style.rawValue)
@@ -301,6 +283,6 @@ struct WineCellarQueryView: View {
         .padding()
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(Color.accentColor.opacity(0.1))
-        .cornerRadius(12)
+        .clipShape(.rect(cornerRadius: 12))
     }
 }

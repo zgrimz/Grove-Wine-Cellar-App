@@ -35,12 +35,12 @@ struct WineListView: View {
 
                 Spacer()
 
-                Button(action: {
+                Button {
                     showingFilterPanel = true
-                }) {
-                    Image(systemName: "line.3.horizontal.decrease.circle")
+                } label: {
+                    Label("Filters", systemImage: "line.3.horizontal.decrease.circle")
+                        .labelStyle(.iconOnly)
                         .font(.title2)
-                        .foregroundColor(.accentColor)
                 }
                 .padding(.trailing)
             }
@@ -80,9 +80,9 @@ struct WineListView: View {
                 .frame(maxWidth: .infinity)
                 .padding()
                 .background(Color.secondary.opacity(0.1))
-                .cornerRadius(10)
+                .clipShape(.rect(cornerRadius: 10))
             }
-            .buttonStyle(PlainButtonStyle())
+            .buttonStyle(.plain)
             .listRowInsets(EdgeInsets())
             .listRowBackground(Color.clear)
             .padding(.vertical)

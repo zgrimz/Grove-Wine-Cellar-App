@@ -11,7 +11,7 @@ struct FilterPanelView: View {
                 VStack(alignment: .leading, spacing: 12) {
                     Text("Wine Color")
                         .font(.headline)
-                        .foregroundColor(.primary)
+                        .foregroundStyle(.primary)
                     
                     VStack(alignment: .leading, spacing: 8) {
                         FilterChip(
@@ -33,7 +33,7 @@ struct FilterPanelView: View {
                 VStack(alignment: .leading, spacing: 12) {
                     Text("Wine Style")
                         .font(.headline)
-                        .foregroundColor(.primary)
+                        .foregroundStyle(.primary)
                     
                     VStack(alignment: .leading, spacing: 8) {
                         FilterChip(

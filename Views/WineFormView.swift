@@ -21,28 +21,32 @@ struct WineFormView: View {
     
     var body: some View {
         Form {
-            Section(header: Text("Photo")) {
-                HStack {
-                    Spacer()
-                    if let image = viewModel.image {
-                        Image(uiImage: image)
-                            .resizable()
-                            .scaledToFit()
-                            .frame(height: 200)
-                    } else {
-                        Image(systemName: "camera")
-                            .font(.system(size: 40))
-                            .foregroundColor(.gray)
-                            .frame(height: 200)
-                    }
-                    Spacer()
-                }
-                .onTapGesture {
+            Section("Photo") {
+                Button {
                     showingImageOptions = true
+                } label: {
+                    HStack {
+                        Spacer()
+                        if let image = viewModel.image {
+                            Image(uiImage: image)
+                                .resizable()
+                                .scaledToFit()
+                                .frame(height: 200)
+                        } else {
+                            Image(systemName: "camera")
+                                .font(.system(size: 40))
+                                .foregroundStyle(.gray)
+                                .frame(height: 200)
+                        }
+                        Spacer()
+                    }
+                    .contentShape(.rect)
                 }
+                .buttonStyle(.plain)
+                .accessibilityLabel(viewModel.image == nil ? "Add Photo" : "Change Photo")
             }
             
-            Section(header: Text("Wine Details")) {
+            Section("Wine Details") {
                 TextField("Name", text: $viewModel.name)
                 Picker("Color", selection: $viewModel.color) {
                     ForEach(WineColor.allCases, id: \.self) { color in
@@ -62,12 +66,12 @@ struct WineFormView: View {
                         Text("Sweetness")
                         Spacer()
                         Text(sweetnessDisplayText)
-                            .foregroundColor(.gray)
+                            .foregroundStyle(.gray)
                     }
                 }
             }
             
-            Section(header: Text("Additional Details")) {
+            Section("Additional Details") {
                 TextField("Producer", text: $viewModel.producer)
                 TextField("Vintage", text: $viewModel.vintage)
                     .keyboardType(.numberPad)
@@ -80,7 +84,7 @@ struct WineFormView: View {
                 TextField("Varietal", text: $viewModel.varietal)
             }
             
-            Section(header: Text("Notes")) {
+            Section("Notes") {
                 TextEditor(text: $viewModel.notes)
                     .frame(minHeight: 100)
             }
@@ -132,8 +136,7 @@ struct WineFormView: View {
             if viewModel.isProcessing {
                 ProgressView("Processing image...")
                     .padding()
-                    .background(Color.secondary.colorInvert())
-                    .cornerRadius(8)
+                    .background(.regularMaterial, in: .rect(cornerRadius: 8))
                     .shadow(radius: 4)
             }
         }

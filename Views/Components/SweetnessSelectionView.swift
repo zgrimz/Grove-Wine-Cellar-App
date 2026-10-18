@@ -21,11 +21,11 @@ struct SweetnessSelectionView: View {
                             Spacer()
                             if selectedSweetness.contains(sweetness) {
                                 Image(systemName: "checkmark")
-                                    .foregroundColor(.accentColor)
+                                    .foregroundStyle(Color.accentColor)
                             }
                         }
                     }
-                    .foregroundColor(.primary)
+                    .foregroundStyle(.primary)
                 }
             }
             .navigationTitle("Sweetness Levels")
