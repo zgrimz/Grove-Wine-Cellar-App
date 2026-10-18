@@ -1,4 +1,5 @@
 import Foundation
+import os
 import Observation
 
 /// The app's one in-memory copy of the cellar, shared by every screen through the environment.
@@ -28,7 +29,7 @@ final class WineStore {
         do {
             wines = try repository.fetchWines()
         } catch {
-            print("Error loading wines: \(error)")
+            Logger.data.error("Couldn't load wines: \(error)")
         }
     }
 
@@ -57,7 +58,7 @@ final class WineStore {
             do {
                 try images.deleteImage(atPath: imagePath)
             } catch {
-                print("Couldn't delete photo for deleted wine: \(error)")
+                Logger.data.error("Couldn't delete the photo of a deleted wine: \(error)")
             }
         }
     }

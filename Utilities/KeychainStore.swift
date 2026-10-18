@@ -1,4 +1,5 @@
 import Foundation
+import os
 import Security
 
 /// Minimal Keychain wrapper for the AI providers' API keys — one item per provider, keyed by
@@ -65,6 +66,6 @@ enum KeychainStore {
     private static func log(_ status: OSStatus, _ action: String) {
         guard status != errSecSuccess, status != errSecItemNotFound else { return }
         let detail = SecCopyErrorMessageString(status, nil) as String? ?? "OSStatus \(status)"
-        print("Keychain couldn't \(action) — \(detail) (\(status))")
+        Logger.keychain.error("Keychain couldn't \(action, privacy: .public) — \(detail, privacy: .public) (\(status, privacy: .public))")
     }
 }

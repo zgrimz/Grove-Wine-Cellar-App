@@ -1,4 +1,5 @@
 import Foundation
+import os
 
 /// The one network path for every AI feature in the app.
 ///
@@ -63,10 +64,10 @@ enum AIClient {
             // A budget spent entirely on reasoning looks identical to a missing tool call from
             // here, so name the real cause before giving up.
             if wire.isTruncated(root) {
-                print("AI: \(provider.rawValue) response truncated before the tool call")
+                Logger.ai.error("\(provider.rawValue, privacy: .public) response truncated before the tool call")
                 throw CallError.truncated
             }
-            print("AI: couldn't read a tool call out of the \(provider.rawValue) response")
+            Logger.ai.error("Couldn't read a tool call out of the \(provider.rawValue, privacy: .public) response")
             throw error
         }
     }
@@ -94,7 +95,7 @@ enum AIClient {
         do {
             (data, response) = try await URLSession.shared.data(for: request)
         } catch {
-            print("AI: request failed to send — URLError \((error as? URLError)?.errorCode ?? -1)")
+            Logger.ai.error("Request failed to send — URLError \((error as? URLError)?.errorCode ?? -1, privacy: .public)")
             throw CallError.transport(error.localizedDescription)
         }
         guard let http = response as? HTTPURLResponse else {
@@ -109,7 +110,7 @@ enum AIClient {
         // Status only. The provider's error message can quote the request back, and the request
         // carries the user's label photo or cellar list — so it reaches the user's alert and
         // stops there.
-        print("AI: provider returned HTTP \(http.statusCode)")
+        Logger.ai.error("Provider returned HTTP \(http.statusCode, privacy: .public)")
         throw CallError.http(status: http.statusCode,
                              message: aiErrorMessage(from: data, root: root),
                              isAuthFailure: wire.isAuthFailure(status: http.statusCode, root: root))

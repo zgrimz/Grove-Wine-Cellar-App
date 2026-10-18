@@ -1,4 +1,5 @@
 import Foundation
+import os
 import Observation
 
 @MainActor
@@ -37,7 +38,7 @@ final class WineCellarQueryViewModel {
             state = .result(recommendation)
             foodInput = "" // Clear input after successful pairing
         } catch {
-            print("Error getting wine pairing:", error)
+            Logger.ai.error("Pairing failed: \(error)")
             // Back on the input screen, with what the user typed still there to retry.
             state = .failed(error.localizedDescription)
         }
