@@ -52,6 +52,15 @@
 		6BF1D14A2D3A01C700716321 /* SommelierService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6BF1D1492D3A01C700716321 /* SommelierService.swift */; };
 		6BF1D14C2D3A01D900716321 /* WineCellarQueryViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6BF1D14B2D3A01D900716321 /* WineCellarQueryViewModel.swift */; };
 		6BF1D14E2D3A01FA00716321 /* WineCellarQueryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6BF1D14D2D3A01FA00716321 /* WineCellarQueryView.swift */; };
+		C0FFEE000000000000000003 /* KeychainStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0FFEE000000000000000002 /* KeychainStore.swift */; };
+		C0FFEE000000000000000005 /* AISettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0FFEE000000000000000004 /* AISettings.swift */; };
+		C0FFEE000000000000000007 /* AIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0FFEE000000000000000006 /* AIClient.swift */; };
+		C0FFEE000000000000000009 /* AIModelCatalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0FFEE000000000000000008 /* AIModelCatalog.swift */; };
+		C0FFEE00000000000000000B /* AIProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0FFEE00000000000000000A /* AIProvider.swift */; };
+		C0FFEE00000000000000000D /* AIToolRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0FFEE00000000000000000C /* AIToolRequest.swift */; };
+		C0FFEE00000000000000000F /* AIWireFormat.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0FFEE00000000000000000E /* AIWireFormat.swift */; };
+		C0FFEE000000000000000011 /* AnthropicWire.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0FFEE000000000000000010 /* AnthropicWire.swift */; };
+		C0FFEE000000000000000013 /* OpenAIWire.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0FFEE000000000000000012 /* OpenAIWire.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -117,6 +126,15 @@
 		6BF1D1492D3A01C700716321 /* SommelierService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SommelierService.swift; sourceTree = "<group>"; };
 		6BF1D14B2D3A01D900716321 /* WineCellarQueryViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WineCellarQueryViewModel.swift; sourceTree = "<group>"; };
 		6BF1D14D2D3A01FA00716321 /* WineCellarQueryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WineCellarQueryView.swift; sourceTree = "<group>"; };
+		C0FFEE000000000000000002 /* KeychainStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainStore.swift; sourceTree = "<group>"; };
+		C0FFEE000000000000000004 /* AISettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AISettings.swift; sourceTree = "<group>"; };
+		C0FFEE000000000000000006 /* AIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIClient.swift; sourceTree = "<group>"; };
+		C0FFEE000000000000000008 /* AIModelCatalog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIModelCatalog.swift; sourceTree = "<group>"; };
+		C0FFEE00000000000000000A /* AIProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIProvider.swift; sourceTree = "<group>"; };
+		C0FFEE00000000000000000C /* AIToolRequest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIToolRequest.swift; sourceTree = "<group>"; };
+		C0FFEE00000000000000000E /* AIWireFormat.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIWireFormat.swift; sourceTree = "<group>"; };
+		C0FFEE000000000000000010 /* AnthropicWire.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnthropicWire.swift; sourceTree = "<group>"; };
+		C0FFEE000000000000000012 /* OpenAIWire.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenAIWire.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -207,11 +225,27 @@
 		6B4710102D079E8F00C8FC37 /* Services */ = {
 			isa = PBXGroup;
 			children = (
+				C0FFEE000000000000000001 /* AI */,
+				C0FFEE000000000000000004 /* AISettings.swift */,
 				6BF1D1492D3A01C700716321 /* SommelierService.swift */,
 				6B4710122D079EAA00C8FC37 /* VisionService.swift */,
 				6B4710112D079E9700C8FC37 /* ImageStorageService.swift */,
 			);
 			path = Services;
+			sourceTree = "<group>";
+		};
+		C0FFEE000000000000000001 /* AI */ = {
+			isa = PBXGroup;
+			children = (
+				C0FFEE000000000000000006 /* AIClient.swift */,
+				C0FFEE000000000000000008 /* AIModelCatalog.swift */,
+				C0FFEE00000000000000000A /* AIProvider.swift */,
+				C0FFEE00000000000000000C /* AIToolRequest.swift */,
+				C0FFEE00000000000000000E /* AIWireFormat.swift */,
+				C0FFEE000000000000000010 /* AnthropicWire.swift */,
+				C0FFEE000000000000000012 /* OpenAIWire.swift */,
+			);
+			path = AI;
 			sourceTree = "<group>";
 		};
 		6B4710132D079EC800C8FC37 /* ViewModels */ = {
@@ -283,6 +317,7 @@
 			isa = PBXGroup;
 			children = (
 				6B889A122E14C97E00DF589F /* WineColorHelper.swift */,
+				C0FFEE000000000000000002 /* KeychainStore.swift */,
 			);
 			path = Utilities;
 			sourceTree = "<group>";
@@ -439,6 +474,15 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				C0FFEE000000000000000003 /* KeychainStore.swift in Sources */,
+				C0FFEE000000000000000005 /* AISettings.swift in Sources */,
+				C0FFEE000000000000000007 /* AIClient.swift in Sources */,
+				C0FFEE000000000000000009 /* AIModelCatalog.swift in Sources */,
+				C0FFEE00000000000000000B /* AIProvider.swift in Sources */,
+				C0FFEE00000000000000000D /* AIToolRequest.swift in Sources */,
+				C0FFEE00000000000000000F /* AIWireFormat.swift in Sources */,
+				C0FFEE000000000000000011 /* AnthropicWire.swift in Sources */,
+				C0FFEE000000000000000013 /* OpenAIWire.swift in Sources */,
 				6B4710012D079AA000C8FC37 /* WineSubType.swift in Sources */,
 				6B889A0F2E14C2BC00DF589F /* FilterPanelView.swift in Sources */,
 				6B4710242D07AB7400C8FC37 /* GroveWineCellarApp.swift in Sources */,

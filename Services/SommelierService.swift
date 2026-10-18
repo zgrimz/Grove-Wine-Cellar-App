@@ -45,102 +45,103 @@ struct WineRecommendation: Codable {
     }
 }
 
+/// Picks the bottle from the user's cellar for a dish or occasion, through a forced
+/// `recommend_wine` tool call (see ``AIClient``) so the answer comes back as structured JSON from
+/// either provider.
 class SommelierService {
     static let shared = SommelierService()
-    private let baseURL = "https://api.anthropic.com/v1/messages"
-    
-    private var apiKey: String {
-        UserDefaults.standard.string(forKey: "claudeAPIKey") ?? ""
-    }
-    
-    private var model: String {
-        UserDefaults.standard.string(forKey: "claudeModel") ?? "claude-sonnet-4-20250514"
-    }
-    
-    func getWineRecommendations(userQuery: String, inventory: [Wine], pairingType: PairingType = .food, preferredWineColor: WineColor? = nil) async throws -> WineRecommendation {
-        // Check if API key is configured
-        guard !apiKey.isEmpty else {
-            throw SommelierError.missingAPIKey
-        }
-        
+
+    func getWineRecommendations(userQuery: String, inventory: [Wine], pairingType: PairingType = .food,
+                                preferredWineColor: WineColor? = nil, provider: AIProvider,
+                                apiKey: String, modelID: String) async throws -> WineRecommendation {
+        guard !apiKey.isEmpty else { throw SommelierError.notConfigured(provider) }
+        guard !modelID.isEmpty else { throw SommelierError.noModelSelected(provider) }
+
         var filteredInventory = inventory.filter { !$0.isArchived }
-        
+
         // Filter by wine color if specified
         if let preferredColor = preferredWineColor {
             filteredInventory = filteredInventory.filter { $0.color == preferredColor }
         }
-        
-        let url = URL(string: baseURL)!
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.setValue("application/json", forHTTPHeaderField: "content-type")
-        request.setValue("2023-06-01", forHTTPHeaderField: "anthropic-version")
-        request.setValue(apiKey, forHTTPHeaderField: "x-api-key")
-        
-        let inventoryString = try formatInventoryForPrompt(filteredInventory)
-        let pairingContext = pairingType == .food ? "dish/meal" : "occasion"
-        
-let requestBody: [String: Any] = [
-    "model": model,
-    "max_tokens": 1024,
-    "system": """
-        You are a professional sommelier. When given a wine inventory and a \(pairingContext), recommend the best possible wine from that inventory.
-        
-        Return your response in the following exact JSON format:
-        {
-          "recommendedWine": {
-            "name": "Wine Name",
-            "producer": "Producer Name", 
-            "vintage": "YYYY",
-            "id": "WINE_ID_FROM_INVENTORY"
-          },
-          "whyThisPair": [
-            "First reason with wine attributes (acidity, tannin, body, flavor)",
-            "Second reason with complementary aspects"
-          ],
-          "pairingConfidence": N,
-          "betterPairingRecommendation": {
-            "wine": "Alternative wine style/variety", 
-            "explanation": "Why this would be better"
-          }
+
+        // With nothing to choose from, the model would only invent a bottle.
+        guard !filteredInventory.isEmpty else { throw SommelierError.emptyCellar }
+
+        let input: [String: Any]
+        do {
+            input = try await AIClient.forcedToolInput(
+                request(userQuery: userQuery, inventory: filteredInventory, pairingType: pairingType,
+                        modelID: modelID),
+                provider: provider, apiKey: apiKey)
+        } catch AIClient.CallError.noToolCall {
+            throw SommelierError.invalidResponseFormat
+        } catch let error as AIClient.CallError {
+            throw SommelierError.aiFailure(error, provider)
         }
-        
-        IMPORTANT: Use the exact "ID" value from the wine inventory for the "id" field in your response.
-        IMPORTANT: For vintage, use the exact value from inventory (could be a year like "2019" or "NV" for non-vintage).
-        Note: betterPairingRecommendation should only be included if pairingConfidence is below 8.
-        """,
-    "messages": [
-        [
-            "role": "user",
-            "content": """
+
+        guard let recommendation = Self.recommendation(from: input) else {
+            throw SommelierError.invalidResponseFormat
+        }
+        return recommendation
+    }
+
+    private func request(userQuery: String, inventory: [Wine], pairingType: PairingType,
+                         modelID: String) -> AIToolRequest {
+        let pairingContext = pairingType == .food ? "dish/meal" : "occasion"
+        return AIToolRequest(
+            modelID: modelID,
+            maxTokens: 1024,
+            systemPrompt: """
+                You are a professional sommelier. When given a wine inventory and a \(pairingContext), \
+                choose the best possible wine from that inventory and call the recommend_wine tool.
+
+                Use the exact "ID" value from the inventory for the wine's id, and its vintage \
+                exactly as listed (a year like "2019", or "NV" for non-vintage). Include \
+                betterPairingRecommendation only if pairingConfidence is below 8.
+                """,
+            userText: """
                 Available Wine Inventory:
-                \(inventoryString)
-                
+                \(formatInventoryForPrompt(inventory))
+
                 \(pairingType == .food ? "Please recommend a wine to pair with this dish:" : "Please recommend a wine for this occasion:")
                 \(userQuery)
-                """
-        ]
-    ]
-]
-        
-        request.httpBody = try JSONSerialization.data(withJSONObject: requestBody)
-        
-        let (data, response) = try await URLSession.shared.data(for: request)
-        
-        guard let httpResponse = response as? HTTPURLResponse,
-              httpResponse.statusCode == 200 else {
-            throw SommelierError.apiError
-        }
-        
-        let claudeResponse = try JSONDecoder().decode(ClaudeResponse.self, from: data)
-        guard let responseText = claudeResponse.content.first?.text else {
-            throw SommelierError.noRecommendations
-        }
-        
-        return try parseRecommendation(from: responseText)
+                """,
+            image: nil,
+            tool: AITool(
+                name: "recommend_wine",
+                description: "Recommend one wine from the inventory.",
+                properties: [
+                    "recommendedWine": [
+                        "type": "object",
+                        "properties": [
+                            "id": ["type": "string", "description": "The wine's exact ID from the inventory."],
+                            "name": ["type": "string"],
+                            "producer": ["type": "string"],
+                            "vintage": ["type": "string", "description": "Exactly as in the inventory."],
+                        ],
+                        "required": ["id", "name", "producer"],
+                    ],
+                    "whyThisPair": [
+                        "type": "array",
+                        "items": ["type": "string"],
+                        "description": "Two or three reasons, citing the wine's acidity, tannin, body or flavor and how they complement the pairing.",
+                    ],
+                    "pairingConfidence": ["type": "integer", "minimum": 1, "maximum": 10],
+                    "betterPairingRecommendation": [
+                        "type": "object",
+                        "description": "Only when pairingConfidence is below 8: a wine style or variety, not necessarily in the inventory, that would pair better.",
+                        "properties": [
+                            "wine": ["type": "string"],
+                            "explanation": ["type": "string"],
+                        ],
+                        "required": ["wine", "explanation"],
+                    ],
+                ],
+                required: ["recommendedWine", "whyThisPair", "pairingConfidence"]),
+            timeout: 60)
     }
-    
-    private func formatInventoryForPrompt(_ inventory: [Wine]) throws -> String {
+
+    private func formatInventoryForPrompt(_ inventory: [Wine]) -> String {
         let inventoryItems = inventory.map { wine in
             var item = "ID: \(wine.id.uuidString)\n"
             item += "Name: \(wine.name)\n"
@@ -163,61 +164,48 @@ let requestBody: [String: Any] = [
             }
             return item
         }
-        
+
         return inventoryItems.joined(separator: "\n---\n")
     }
-    
-    private func parseRecommendation(from text: String) throws -> WineRecommendation {
-        print("Raw response from Claude:", text)
-        
-        guard let jsonStart = text.firstIndex(of: "{"),
-              let jsonEnd = text.lastIndex(of: "}") else {
-            print("Failed to find JSON markers in response")
-            throw SommelierError.invalidResponseFormat
+
+    /// Decode the tool input into a ``WineRecommendation``. The schema asks for a string vintage,
+    /// but a bare year arriving as a number — or a producer left out for a wine that has none —
+    /// is common enough to accept rather than fail the whole pairing over.
+    static func recommendation(from input: [String: Any]) -> WineRecommendation? {
+        var input = input
+        if var wine = input["recommendedWine"] as? [String: Any] {
+            if let vintage = wine["vintage"] as? NSNumber { wine["vintage"] = vintage.stringValue }
+            if wine["producer"] == nil { wine["producer"] = "" }
+            input["recommendedWine"] = wine
         }
-        
-        let jsonString = String(text[jsonStart...jsonEnd])
-        print("Extracted JSON string:", jsonString)
-        
-        do {
-            let jsonData = jsonString.data(using: .utf8)!
-            let recommendation = try JSONDecoder().decode(WineRecommendation.self, from: jsonData)
-            return recommendation
-        } catch {
-            print("JSON Decoding error:", error)
-            throw SommelierError.invalidResponseFormat
-        }
+        guard JSONSerialization.isValidJSONObject(input),
+              let data = try? JSONSerialization.data(withJSONObject: input) else { return nil }
+        return try? JSONDecoder().decode(WineRecommendation.self, from: data)
     }
-    
+
     enum SommelierError: Error, LocalizedError {
-        case missingAPIKey
-        case apiError
-        case noRecommendations
+        case aiDisabled
+        case notConfigured(AIProvider)
+        case noModelSelected(AIProvider)
+        case emptyCellar
+        case aiFailure(AIClient.CallError, AIProvider)
         case invalidResponseFormat
-        
+
         var errorDescription: String? {
             switch self {
-            case .missingAPIKey:
-                return "Please set your Claude API key in Settings to use AI features."
-            case .apiError:
-                return "Unable to connect to Claude API. Please check your API key and internet connection."
-            case .noRecommendations:
-                return "No wine recommendations were returned from the API."
+            case .aiDisabled:
+                return "Turn on AI features in Settings to get pairing recommendations."
+            case .notConfigured(let provider):
+                return "Add your \(provider.displayName) API key in Settings to get pairing recommendations."
+            case .noModelSelected:
+                return "Choose a pairing model in Settings."
+            case .emptyCellar:
+                return "There are no wines in your cellar to choose from. Add a wine, or pick a different color."
+            case .aiFailure(let error, let provider):
+                return error.summary(provider: provider)
             case .invalidResponseFormat:
                 return "Received an unexpected response format from the API."
             }
-        }
-    }
-    
-    private struct ClaudeResponse: Codable {
-        let content: [Content]
-        let id: String
-        let model: String
-        let role: String
-        
-        struct Content: Codable {
-            let text: String
-            let type: String
         }
     }
 }

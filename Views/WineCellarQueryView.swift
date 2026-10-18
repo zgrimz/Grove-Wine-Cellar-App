@@ -4,6 +4,7 @@ import Combine
 
 struct WineCellarQueryView: View {
     @StateObject private var viewModel: WineCellarQueryViewModel
+    @Environment(AISettings.self) private var aiSettings
     @FocusState private var isFocused: Bool
     @State private var keyboardHeight: CGFloat = 0
     
@@ -218,7 +219,7 @@ struct WineCellarQueryView: View {
                         
                         Button(action: {
                             Task {
-                                await viewModel.getPairing()
+                                await viewModel.getPairing(settings: aiSettings)
                             }
                         }) {
                             HStack {

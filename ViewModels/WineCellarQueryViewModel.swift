@@ -17,16 +17,18 @@ class WineCellarQueryViewModel: ObservableObject {
         self.repository = repository
     }
     
-    func getPairing() async {
+    func getPairing(settings: AISettings) async {
         guard !foodInput.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
         
         isLoading = true
         defer { isLoading = false }
         
         do {
+            guard settings.isEnabled else { throw SommelierService.SommelierError.aiDisabled }
             let inventory = try repository.fetchWines()
             let recommendation = try await SommelierService.shared
-                .getWineRecommendations(userQuery: foodInput, inventory: inventory, pairingType: pairingType, preferredWineColor: selectedWineColor)
+                .getWineRecommendations(userQuery: foodInput, inventory: inventory, pairingType: pairingType, preferredWineColor: selectedWineColor,
+                                        provider: settings.provider, apiKey: settings.trimmedKey, modelID: settings.pairingModelID)
             
             // Store the structured recommendation
             currentRecommendation = recommendation

@@ -5,6 +5,7 @@ import Foundation
 @main
 struct GroveWineCellarApp: App {
     let persistenceController = PersistenceController.shared
+    @State private var aiSettings = AISettings()
     
     var body: some Scene {
         WindowGroup {
@@ -14,6 +15,7 @@ struct GroveWineCellarApp: App {
                 )
             )
             .environment(\.managedObjectContext, persistenceController.container.viewContext)
+            .environment(aiSettings)
         }
     }
 }

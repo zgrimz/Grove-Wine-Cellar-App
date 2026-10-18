@@ -4,6 +4,7 @@ import Foundation
 
 struct WineFormView: View {
     @Environment(\.dismiss) private var dismiss
+    @Environment(AISettings.self) private var aiSettings
     @ObservedObject private var viewModel: WineFormViewModel
     @State private var showingImageOptions = false
     @State private var showingError = false
@@ -146,10 +147,11 @@ struct WineFormView: View {
     }
     
     private func processImageIfNeeded() {
-        if let image = viewModel.image {
+        // With AI off, a photo is just the wine's photo — no scan, and no error asking for a key.
+        if aiSettings.isEnabled, let image = viewModel.image {
             Task {
                 do {
-                    let attributes = try await viewModel.processImage(image)
+                    let attributes = try await viewModel.processImage(image, settings: aiSettings)
                     await MainActor.run {
                         viewModel.name = attributes.name
                         viewModel.color = attributes.color

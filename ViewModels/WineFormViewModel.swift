@@ -53,11 +53,13 @@ class WineFormViewModel: ObservableObject {
         }
     }
     
-    func processImage(_ image: UIImage) async throws -> RecognizedWineAttributes {
+    func processImage(_ image: UIImage, settings: AISettings) async throws -> RecognizedWineAttributes {
         isProcessing = true
         defer { isProcessing = false }
         
-        return try await VisionService.shared.recognizeWineLabel(image)
+        return try await VisionService.shared.recognizeWineLabel(image, provider: settings.provider,
+                                                                 apiKey: settings.trimmedKey,
+                                                                 modelID: settings.labelScanningModelID)
     }
     
     func save() async throws {
