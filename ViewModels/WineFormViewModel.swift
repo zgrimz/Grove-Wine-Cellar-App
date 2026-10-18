@@ -1,27 +1,28 @@
 import SwiftUI
 import UIKit
-import Foundation
+import Observation
 
 @MainActor
-class WineFormViewModel: ObservableObject {
-    @Published var name = ""
-    @Published var color = WineColor.red
-    @Published var style = WineStyle.still
-    @Published var sweetness: Set<WineSweetness> = []
-    @Published var producer = ""
-    @Published var vintage = ""
-    @Published var region = ""
-    @Published var varietal = ""
-    @Published var notes = ""
-    @Published var image: UIImage? {
+@Observable
+final class WineFormViewModel {
+    var name = ""
+    var color = WineColor.red
+    var style = WineStyle.still
+    var sweetness: Set<WineSweetness> = []
+    var producer = ""
+    var vintage = ""
+    var region = ""
+    var varietal = ""
+    var notes = ""
+    var image: UIImage? {
         didSet {
             // Any change to image is considered a modification
             imageWasModified = true
         }
     }
-    @Published var isProcessing = false
-    @Published var showingImagePicker = false
-    @Published var showingCamera = false
+    var isProcessing = false
+    var showingImagePicker = false
+    var showingCamera = false
 
     var isEditMode: Bool { wine != nil }
 
@@ -42,12 +43,17 @@ class WineFormViewModel: ObservableObject {
     var canSave: Bool {
         !name.trimmingCharacters(in: .whitespaces).isEmpty && isVintageValid && !isProcessing
     }
-    private var imageWasModified = false
 
-    private let onSave: (Wine) async -> Void
-    private let wine: Wine?
+    @ObservationIgnored private var imageWasModified = false
+    @ObservationIgnored private var hasLoadedExistingImage = false
+    @ObservationIgnored private let onSave: (Wine) throws -> Void
+    @ObservationIgnored private let wine: Wine?
+    @ObservationIgnored private let images = ImageStorageService.shared
 
-    init(onSave: @escaping (Wine) async -> Void, wine: Wine? = nil) {
+    /// Kept cheap — no disk reads. SwiftUI evaluates `State(initialValue:)` on every re-render of
+    /// the presenting view and discards all but the first instance; the photo loads in
+    /// ``loadExistingImage()`` instead.
+    init(wine: Wine? = nil, onSave: @escaping (Wine) throws -> Void) {
         self.onSave = onSave
         self.wine = wine
 
@@ -61,21 +67,22 @@ class WineFormViewModel: ObservableObject {
             self.region = wine.region ?? ""
             self.varietal = wine.varietal ?? ""
             self.notes = wine.notes ?? ""
-
-            if let imagePath = wine.imagePath {
-                self.image = ImageStorageService.shared.loadImage(fromPath: imagePath)
-            }
-
-            // Reset flag after loading existing data - loading isn't a modification
-            self.imageWasModified = false
         }
     }
-    
+
+    /// Show the wine's current photo when editing. Loading it isn't a modification.
+    func loadExistingImage() {
+        guard !hasLoadedExistingImage, let imagePath = wine?.imagePath else { return }
+        hasLoadedExistingImage = true
+        image = images.loadImage(fromPath: imagePath)
+        imageWasModified = false
+    }
+
     /// Read the label in a newly picked photo into the form.
     func scanLabel(_ image: UIImage, settings: AISettings) async throws {
         isProcessing = true
         defer { isProcessing = false }
-        
+
         apply(try await VisionService.shared.recognizeWineLabel(image, provider: settings.provider,
                                                                 apiKey: settings.trimmedKey,
                                                                 modelID: settings.labelScanningModelID))
@@ -93,29 +100,21 @@ class WineFormViewModel: ObservableObject {
         if let region = attributes.region { self.region = region }
         if let varietal = attributes.varietal { self.varietal = varietal }
     }
-    
-    func save() async throws {
-        var imagePath = wine?.imagePath
 
-        // Only update image storage if the image was actually modified
+    /// Save the wine, replacing its photo only once the new one is safely stored: write the new
+    /// photo, persist, and only then delete the old one. A failure at any step leaves the wine
+    /// pointing at a photo that exists.
+    func save() throws {
+        let oldPath = wine?.imagePath
+        var imagePath = oldPath
         if imageWasModified {
-            // Delete old image if it exists
-            if let oldPath = imagePath {
-                try? ImageStorageService.shared.deleteImage(atPath: oldPath)
-            }
-
-            // Save new image if one is set
-            if let newImage = image {
-                imagePath = try ImageStorageService.shared.saveImage(newImage)
-            } else {
-                // User removed the image
-                imagePath = nil
-            }
+            // nil when the user removed the photo
+            imagePath = try image.map { try images.saveImage($0) }
         }
 
         let wine = Wine(
             id: self.wine?.id ?? UUID(),
-            name: name,
+            name: name.trimmingCharacters(in: .whitespaces),
             color: color,
             style: style,
             sweetness: sweetness,
@@ -129,6 +128,16 @@ class WineFormViewModel: ObservableObject {
             isArchived: self.wine?.isArchived ?? false
         )
 
-        await onSave(wine)
+        do {
+            try onSave(wine)
+        } catch {
+            // The wine still points at its old photo, so the new one is the orphan.
+            if imageWasModified, let imagePath { try? images.deleteImage(atPath: imagePath) }
+            throw error
+        }
+
+        if imageWasModified, let oldPath, oldPath != imagePath {
+            try? images.deleteImage(atPath: oldPath)
+        }
     }
 }

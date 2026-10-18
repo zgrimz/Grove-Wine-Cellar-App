@@ -24,24 +24,17 @@ struct WineRecommendation: Codable {
     let pairingConfidence: Int
     let betterPairingRecommendation: BetterPairing?
     
-    // Updated computed property to handle optional vintage
+    /// The wine's name with its vintage, when it has one.
     var recommendation: String {
         if let vintage = recommendedWine.vintage {
             return "\(recommendedWine.name) \(vintage)"
         }
         return recommendedWine.name
     }
-    
-    var why: [String] {
-        whyThisPair
-    }
-    
-    var alternateRecommendation: String? {
-        betterPairingRecommendation.map { "\($0.wine): \($0.explanation)" }
-    }
-    
-    var reasons: String {
-        why.map { "• \($0)" }.joined(separator: "\n")
+
+    /// The recommended wine's id in the cellar, when the model returned a well-formed one.
+    var wineID: UUID? {
+        UUID(uuidString: recommendedWine.id)
     }
 }
 

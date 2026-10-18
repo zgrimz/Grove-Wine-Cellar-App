@@ -1,18 +1,19 @@
 import SwiftUI
 import UIKit
-import Foundation
 
 struct WineFormView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(AISettings.self) private var aiSettings
-    @ObservedObject private var viewModel: WineFormViewModel
+    @State private var viewModel: WineFormViewModel
     @State private var showingImageOptions = false
-    @State private var showingError = false
-    @State private var errorMessage = ""
+    @State private var errorMessage: String?
     @State private var showingSweetnessSelection = false
     
-    init(onSave: @escaping (Wine) async -> Void, wine: Wine? = nil) {
-        self.viewModel = WineFormViewModel(onSave: onSave, wine: wine)
+    /// `onSave` persists the wine and throws if it can't; the form stays open and shows the error.
+    /// The model lives in `@State` so it survives re-renders of the presenting view — created in
+    /// `init` as a plain observed object, it was rebuilt (and the user's edits lost) on each one.
+    init(wine: Wine? = nil, onSave: @escaping (Wine) throws -> Void) {
+        _viewModel = State(initialValue: WineFormViewModel(wine: wine, onSave: onSave))
     }
     
     var body: some View {
@@ -112,11 +113,8 @@ struct WineFormView: View {
             Button("Choose from Library") { viewModel.showingImagePicker = true }
             Button("Cancel", role: .cancel) {}
         }
-        .alert("Error", isPresented: $showingError) {
-            Button("OK", role: .cancel) { }
-        } message: {
-            Text(errorMessage)
-        }
+        .errorAlert(message: $errorMessage)
+        .task { viewModel.loadExistingImage() }
         .overlay {
             if viewModel.isProcessing {
                 ProgressView("Processing image...")
@@ -149,20 +147,16 @@ struct WineFormView: View {
                 try await viewModel.scanLabel(image, settings: aiSettings)
             } catch {
                 errorMessage = error.localizedDescription
-                showingError = true
             }
         }
     }
     
     private func save() {
-        Task {
-            do {
-                try await viewModel.save()
-                dismiss()
-            } catch {
-                errorMessage = error.localizedDescription
-                showingError = true
-            }
+        do {
+            try viewModel.save()
+            dismiss()
+        } catch {
+            errorMessage = error.localizedDescription
         }
     }
 }

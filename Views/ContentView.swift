@@ -1,18 +1,12 @@
 import SwiftUI
 
 struct ContentView: View {
-    @StateObject private var viewModel: WineListViewModel
-    private let repository: WineRepository  // Add this
+    @Environment(WineStore.self) private var store
     @State private var showingSettings = false
-    
-    init(repository: WineRepository) {
-        self.repository = repository  // Store repository
-        _viewModel = StateObject(wrappedValue: WineListViewModel(repository: repository))
-    }
     
     var body: some View {
         NavigationView {
-            WineListView(viewModel: viewModel)
+            WineListView()
                 .toolbar {
                     ToolbarItem(placement: .navigationBarLeading) {
                         Button(action: { showingSettings = true }) {
@@ -21,7 +15,7 @@ struct ContentView: View {
                     }
                     
                     ToolbarItem(placement: .navigationBarTrailing) {
-                        NavigationLink(destination: WineCellarQueryView(repository: repository)) {  // Use stored repository
+                        NavigationLink(destination: WineCellarQueryView()) {
                             Image(systemName: "message.circle")
                         }
                     }
@@ -30,5 +24,6 @@ struct ContentView: View {
                     SettingsView()
                 }
         }
+        .task { store.load() }
     }
 }
