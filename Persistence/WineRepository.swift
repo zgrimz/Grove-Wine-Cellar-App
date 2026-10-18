@@ -107,14 +107,4 @@ class WineRepository: ObservableObject {
         entities.forEach(context.delete)
         try context.save()
     }
-
-    func toggleArchived(_ wine: Wine) throws {
-        let request = NSFetchRequest<WineEntity>(entityName: "WineEntity")
-        request.predicate = NSPredicate(format: "id == %@", wine.id as CVarArg)
-        
-        if let entity = try context.fetch(request).first {
-            entity.isArchived = !entity.isArchived
-            try context.save()
-        }
-    }
 }

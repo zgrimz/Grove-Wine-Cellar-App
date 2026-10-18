@@ -9,8 +9,6 @@
 /* Begin PBXBuildFile section */
 		C0FFEF26B2A637F7DC4079D5 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = C0FFEE26B2A637F7DC4079D5 /* PrivacyInfo.xcprivacy */; };
 		6B2144DF2D3DF0C6006DB146 /* Media.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 6B2144DE2D3DF0C6006DB146 /* Media.xcassets */; };
-		6B470FFE2D079A8E00C8FC37 /* WineType.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B470FFC2D079A8C00C8FC37 /* WineType.swift */; };
-		6B4710012D079AA000C8FC37 /* WineSubType.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B470FFF2D079A9A00C8FC37 /* WineSubType.swift */; };
 		6B4710042D079AB600C8FC37 /* Wine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B4710022D079AAF00C8FC37 /* Wine.swift */; };
 		6B4710072D079AC700C8FC37 /* RecognizedWineAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B4710052D079AC500C8FC37 /* RecognizedWineAttributes.swift */; };
 		6B47100D2D079BF500C8FC37 /* WineDataModel.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 6B47100B2D079BF500C8FC37 /* WineDataModel.xcdatamodeld */; };
@@ -33,12 +31,10 @@
 		6B4710362D07AD5000C8FC37 /* WineRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B47100A2D079BC900C8FC37 /* WineRepository.swift */; };
 		6B5FE3A02E3849A600664D6C /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B5FE39F2E3849A600664D6C /* SettingsView.swift */; };
 		6B7258062D3B502100964366 /* ChatMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B7258052D3B502000964366 /* ChatMessage.swift */; };
-		6B786F2A2D0930820058F4EF /* SubtypeSelectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B786F292D09307C0058F4EF /* SubtypeSelectionView.swift */; };
 		6B889A0F2E14C2BC00DF589F /* FilterPanelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B889A0E2E14C2BC00DF589F /* FilterPanelView.swift */; };
 		6B889A112E14C8FA00DF589F /* WineTypeCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B889A102E14C8FA00DF589F /* WineTypeCard.swift */; };
 		6B889A142E14C97E00DF589F /* WineColorHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B889A122E14C97E00DF589F /* WineColorHelper.swift */; };
 		6BA349E72D85171E00DA23F2 /* ColorFilterView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6BA349E62D85171E00DA23F2 /* ColorFilterView.swift */; };
-		6BA349E92D85172700DA23F2 /* StyleFilterView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6BA349E82D85172700DA23F2 /* StyleFilterView.swift */; };
 		6BA349EB2D85173100DA23F2 /* SweetnessSelectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6BA349EA2D85173100DA23F2 /* SweetnessSelectionView.swift */; };
 		6BA349ED2D85175600DA23F2 /* WineColor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6BA349EC2D85175600DA23F2 /* WineColor.swift */; };
 		6BA349EF2D85175C00DA23F2 /* WineStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6BA349EE2D85175C00DA23F2 /* WineStyle.swift */; };
@@ -80,8 +76,6 @@
 		6B470FC82D079A6000C8FC37 /* GroveWineCellar.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = GroveWineCellar.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		6B470FDE2D079A6200C8FC37 /* GroveWineCellarTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = GroveWineCellarTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		6B470FE82D079A6200C8FC37 /* GroveWineCellarUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = GroveWineCellarUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		6B470FFC2D079A8C00C8FC37 /* WineType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WineType.swift; sourceTree = "<group>"; };
-		6B470FFF2D079A9A00C8FC37 /* WineSubType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WineSubType.swift; sourceTree = "<group>"; };
 		6B4710022D079AAF00C8FC37 /* Wine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Wine.swift; sourceTree = "<group>"; };
 		6B4710052D079AC500C8FC37 /* RecognizedWineAttributes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecognizedWineAttributes.swift; sourceTree = "<group>"; };
 		6B4710092D079BB400C8FC37 /* PersistenceController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PersistenceController.swift; sourceTree = "<group>"; };
@@ -106,12 +100,10 @@
 		6B7258052D3B502000964366 /* ChatMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatMessage.swift; sourceTree = "<group>"; };
 		6B786F202D07B15A0058F4EF /* GroveWineCellar-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = "GroveWineCellar-Info.plist"; sourceTree = "<group>"; };
 		6B786F212D07B22D0058F4EF /* GroveWineCellar.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = GroveWineCellar.entitlements; sourceTree = "<group>"; };
-		6B786F292D09307C0058F4EF /* SubtypeSelectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubtypeSelectionView.swift; sourceTree = "<group>"; };
 		6B889A0E2E14C2BC00DF589F /* FilterPanelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FilterPanelView.swift; sourceTree = "<group>"; };
 		6B889A102E14C8FA00DF589F /* WineTypeCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WineTypeCard.swift; sourceTree = "<group>"; };
 		6B889A122E14C97E00DF589F /* WineColorHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WineColorHelper.swift; sourceTree = "<group>"; };
 		6BA349E62D85171E00DA23F2 /* ColorFilterView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorFilterView.swift; sourceTree = "<group>"; };
-		6BA349E82D85172700DA23F2 /* StyleFilterView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StyleFilterView.swift; sourceTree = "<group>"; };
 		6BA349EA2D85173100DA23F2 /* SweetnessSelectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SweetnessSelectionView.swift; sourceTree = "<group>"; };
 		6BA349EC2D85175600DA23F2 /* WineColor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WineColor.swift; sourceTree = "<group>"; };
 		6BA349EE2D85175C00DA23F2 /* WineStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WineStyle.swift; sourceTree = "<group>"; };
@@ -265,9 +257,7 @@
 				6B889A102E14C8FA00DF589F /* WineTypeCard.swift */,
 				6B889A0E2E14C2BC00DF589F /* FilterPanelView.swift */,
 				6BA349EA2D85173100DA23F2 /* SweetnessSelectionView.swift */,
-				6BA349E82D85172700DA23F2 /* StyleFilterView.swift */,
 				6BA349E62D85171E00DA23F2 /* ColorFilterView.swift */,
-				6B786F292D09307C0058F4EF /* SubtypeSelectionView.swift */,
 				6B4710222D07AB3F00C8FC37 /* ImagePicker.swift */,
 				6B4710212D07AB3000C8FC37 /* FilterChip.swift */,
 				6B47101E2D07AAE900C8FC37 /* SearchBarView.swift */,
@@ -286,8 +276,6 @@
 				6B7258052D3B502000964366 /* ChatMessage.swift */,
 				6B4710052D079AC500C8FC37 /* RecognizedWineAttributes.swift */,
 				6B4710022D079AAF00C8FC37 /* Wine.swift */,
-				6B470FFF2D079A9A00C8FC37 /* WineSubType.swift */,
-				6B470FFC2D079A8C00C8FC37 /* WineType.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -455,7 +443,6 @@
 				C0FFEE00000000000000000F /* AIWireFormat.swift in Sources */,
 				C0FFEE000000000000000011 /* AnthropicWire.swift in Sources */,
 				C0FFEE000000000000000013 /* OpenAIWire.swift in Sources */,
-				6B4710012D079AA000C8FC37 /* WineSubType.swift in Sources */,
 				6B889A0F2E14C2BC00DF589F /* FilterPanelView.swift in Sources */,
 				6B4710242D07AB7400C8FC37 /* GroveWineCellarApp.swift in Sources */,
 				6B889A112E14C8FA00DF589F /* WineTypeCard.swift in Sources */,
@@ -485,12 +472,9 @@
 				6B889A142E14C97E00DF589F /* WineColorHelper.swift in Sources */,
 				6B4710322D07AD3C00C8FC37 /* WineFormViewModel.swift in Sources */,
 				6B7258062D3B502100964366 /* ChatMessage.swift in Sources */,
-				6B786F2A2D0930820058F4EF /* SubtypeSelectionView.swift in Sources */,
 				6B47102F2D07AD3700C8FC37 /* WineDetailView.swift in Sources */,
 				6B4710302D07AD3700C8FC37 /* WineListView.swift in Sources */,
-				6B470FFE2D079A8E00C8FC37 /* WineType.swift in Sources */,
 				6BA349E72D85171E00DA23F2 /* ColorFilterView.swift in Sources */,
-				6BA349E92D85172700DA23F2 /* StyleFilterView.swift in Sources */,
 				6B4710042D079AB600C8FC37 /* Wine.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

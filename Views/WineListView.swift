@@ -61,12 +61,6 @@ struct WineListView: View {
                     .tint(.orange)
                 }
             }
-            .onDelete { indexSet in
-                if let index = indexSet.first {
-                    wineToDelete = viewModel.filteredWines[index]
-                    showingDeleteAlert = true
-                }
-            }
             
             // Add full-width button at bottom of list
             Button(action: {
@@ -118,9 +112,6 @@ struct WineListView: View {
         }
         .refreshable {
             await viewModel.loadWines()
-        }
-        .onAppear {
-            print("View appeared. Total wines: \(viewModel.filteredWines.count)")
         }
         .alert("Delete Wine", isPresented: $showingDeleteAlert) {
             Button("Delete", role: .destructive) {

@@ -1,6 +1,4 @@
 import SwiftUI
-import Combine
-import Foundation
 
 @MainActor
 class WineListViewModel: ObservableObject {

@@ -1,6 +1,6 @@
 import Foundation
 
-struct RecognizedWineAttributes: Codable {
+struct RecognizedWineAttributes {
     let name: String
     let color: WineColor
     let style: WineStyle

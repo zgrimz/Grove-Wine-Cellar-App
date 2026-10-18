@@ -1,12 +1,9 @@
-// Views/WineCellarQueryView.swift
 import SwiftUI
-import Combine
 
 struct WineCellarQueryView: View {
     @StateObject private var viewModel: WineCellarQueryViewModel
     @Environment(AISettings.self) private var aiSettings
     @FocusState private var isFocused: Bool
-    @State private var keyboardHeight: CGFloat = 0
     
     init(repository: WineRepository) {
         _viewModel = StateObject(wrappedValue: WineCellarQueryViewModel(repository: repository))
@@ -311,41 +308,4 @@ struct WineCellarQueryView: View {
         .background(Color.accentColor.opacity(0.1))
         .cornerRadius(12)
     }
-    
-    private func parseRecommendation(from content: String) -> ParsedRecommendation? {
-        let lines = content.components(separatedBy: .newlines)
-        var wine: String?
-        var confidence: Int?
-        var reasons: [String] = []
-        var alternative: String?
-        
-        for line in lines {
-            let trimmed = line.trimmingCharacters(in: .whitespacesAndNewlines)
-            
-            if trimmed.hasPrefix("Recommended Wine:") {
-                wine = String(trimmed.dropFirst("Recommended Wine:".count)).trimmingCharacters(in: .whitespaces)
-            } else if trimmed.hasPrefix("Pairing Confidence:") {
-                let confidenceString = String(trimmed.dropFirst("Pairing Confidence:".count)).trimmingCharacters(in: .whitespaces)
-                confidence = Int(confidenceString.components(separatedBy: "/").first ?? "")
-            } else if trimmed.hasPrefix("Alternative Suggestion:") {
-                alternative = String(trimmed.dropFirst("Alternative Suggestion:".count)).trimmingCharacters(in: .whitespaces)
-            } else if !trimmed.isEmpty && !trimmed.hasPrefix("Why This Pairing Works:") && !trimmed.hasPrefix("Pairing Confidence:") && wine != nil {
-                // This might be a reason
-                reasons.append(trimmed)
-            }
-        }
-        
-        if let wine = wine {
-            return ParsedRecommendation(wine: wine, confidence: confidence, reasons: reasons, alternative: alternative)
-        }
-        
-        return nil
-    }
-}
-
-struct ParsedRecommendation {
-    let wine: String
-    let confidence: Int?
-    let reasons: [String]
-    let alternative: String?
 }

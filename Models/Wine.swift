@@ -1,6 +1,6 @@
 import Foundation
 
-struct Wine: Identifiable, Codable {
+struct Wine: Identifiable {
     let id: UUID
     var name: String
     var color: WineColor
