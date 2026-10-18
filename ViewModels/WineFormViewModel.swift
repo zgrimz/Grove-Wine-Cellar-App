@@ -70,11 +70,15 @@ final class WineFormViewModel {
         }
     }
 
-    /// Show the wine's current photo when editing. Loading it isn't a modification.
-    func loadExistingImage() {
+    /// Show the wine's current photo when editing. Loading it isn't a modification, and since an
+    /// unmodified photo is never re-saved, a screen-sized preview is all that's needed.
+    func loadExistingImage(maxPixelLength: CGFloat) async {
         guard !hasLoadedExistingImage, let imagePath = wine?.imagePath else { return }
         hasLoadedExistingImage = true
-        image = images.loadImage(fromPath: imagePath)
+        let existing = await images.loadImage(fromPath: imagePath, maxPixelLength: maxPixelLength)
+        // A photo picked while this was loading wins.
+        guard !imageWasModified else { return }
+        image = existing
         imageWasModified = false
     }
 

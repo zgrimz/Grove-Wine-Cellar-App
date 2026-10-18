@@ -1,3 +1,4 @@
+import ImageIO
 import UIKit
 
 class ImageStorageService {
@@ -17,8 +18,11 @@ class ImageStorageService {
     /// Writes the photo and returns its file name. The name is a bare UUID: building it from the
     /// wine's name broke on a "/" (it reads as a subdirectory, so the write fails). Older photos
     /// saved under the previous scheme keep their stored names and still load.
+    ///
+    /// Stored at most 2048 px on the long edge — plenty for any screen in the app, and a fraction
+    /// of a full-resolution camera photo.
     func saveImage(_ image: UIImage) throws -> String {
-        guard let data = image.jpegData(compressionQuality: 0.7) else {
+        guard let data = image.scaledDown(toMaxPixelLength: 2048).jpegData(compressionQuality: 0.7) else {
             throw ImageError.compressionFailed
         }
 
@@ -29,10 +33,22 @@ class ImageStorageService {
         return fileName
     }
 
-    func loadImage(fromPath path: String) -> UIImage? {
+    /// The photo decoded at no more than `maxPixelLength` on its long edge, off the main thread.
+    ///
+    /// ImageIO decodes straight to the requested size, so an 80-point list row no longer inflates a
+    /// full-resolution photo (tens of MB) on the main thread to show it.
+    func loadImage(fromPath path: String, maxPixelLength: CGFloat) async -> UIImage? {
         let fileURL = imagesDirectory.appendingPathComponent(path)
-        guard let data = try? Data(contentsOf: fileURL) else { return nil }
-        return UIImage(data: data)
+        guard let source = CGImageSourceCreateWithURL(fileURL as CFURL, [kCGImageSourceShouldCache: false] as CFDictionary)
+        else { return nil }
+        let options: [CFString: Any] = [
+            kCGImageSourceCreateThumbnailFromImageAlways: true,
+            kCGImageSourceCreateThumbnailWithTransform: true, // apply EXIF orientation
+            kCGImageSourceShouldCacheImmediately: true,
+            kCGImageSourceThumbnailMaxPixelSize: maxPixelLength,
+        ]
+        guard let image = CGImageSourceCreateThumbnailAtIndex(source, 0, options as CFDictionary) else { return nil }
+        return UIImage(cgImage: image)
     }
 
     func deleteImage(atPath path: String) throws {

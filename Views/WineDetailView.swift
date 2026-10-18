@@ -11,6 +11,7 @@ struct WineDetailView: View {
     @State private var showingDeleteAlert = false
     @State private var errorMessage: String?
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.displayScale) private var displayScale
     
     var body: some View {
         if let wine = store.wine(id: wineID) {
@@ -151,7 +152,8 @@ struct WineDetailView: View {
         .errorAlert(message: $errorMessage)
         // Keyed on the path so a photo changed in the edit sheet shows up; onAppear ran only once.
         .task(id: wine.imagePath) {
-            image = wine.imagePath.flatMap { ImageStorageService.shared.loadImage(fromPath: $0) }
+            guard let imagePath = wine.imagePath else { image = nil; return }
+            image = await ImageStorageService.shared.loadImage(fromPath: imagePath, maxPixelLength: 600 * displayScale)
         }
     }
 

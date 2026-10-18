@@ -5,6 +5,7 @@ import UIKit
 struct WineFormView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(AISettings.self) private var aiSettings
+    @Environment(\.displayScale) private var displayScale
     @State private var viewModel: WineFormViewModel
     @State private var showingImageOptions = false
     @State private var libraryItem: PhotosPickerItem?
@@ -126,7 +127,7 @@ struct WineFormView: View {
             Button("Cancel", role: .cancel) {}
         }
         .errorAlert(message: $errorMessage)
-        .task { viewModel.loadExistingImage() }
+        .task { await viewModel.loadExistingImage(maxPixelLength: 600 * displayScale) }
         .overlay {
             if viewModel.isProcessing {
                 ProgressView("Processing image...")
