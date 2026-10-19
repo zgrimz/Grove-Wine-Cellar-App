@@ -1,120 +1,113 @@
 import CoreData
-import SwiftUI
 
-class WineRepository: ObservableObject {
+/// Maps ``Wine`` values to and from Core Data. Used only through ``WineStore``, which keeps the
+/// one in-memory copy the screens read from.
+final class WineRepository {
+    enum RepositoryError: LocalizedError {
+        case notFound
+
+        var errorDescription: String? {
+            switch self {
+            case .notFound: return "This wine no longer exists. It may have been deleted."
+            }
+        }
+    }
+
     private let context: NSManagedObjectContext
-    
+
     init(context: NSManagedObjectContext) {
         self.context = context
     }
-    
-    func saveWine(_ wine: Wine) throws {
-        // Check if marked for deletion
-        if wine.markedForDeletion {
-            try deleteWine(id: wine.id)
-            return
+
+    func fetchWines() throws -> [Wine] {
+        let request = WineEntity.fetchRequest()
+        request.sortDescriptors = [NSSortDescriptor(keyPath: \WineEntity.dateAdded, ascending: false)]
+        return try context.fetch(request).compactMap(Self.wine(from:))
+    }
+
+    func insert(_ wine: Wine) throws {
+        let entity = WineEntity(context: context)
+        entity.id = wine.id
+        entity.dateAdded = wine.dateAdded
+        apply(wine, to: entity)
+        try save()
+    }
+
+    /// Updates an existing wine. Deliberately not an upsert: saving a stale copy of a wine that was
+    /// deleted elsewhere used to quietly re-create it.
+    func update(_ wine: Wine) throws {
+        guard let entity = try entity(id: wine.id) else { throw RepositoryError.notFound }
+        apply(wine, to: entity)
+        try save()
+    }
+
+    func delete(id: UUID) throws {
+        guard let entity = try entity(id: id) else { return }
+        context.delete(entity)
+        try save()
+    }
+
+    // MARK: Private
+
+    private func entity(id: UUID) throws -> WineEntity? {
+        let request = WineEntity.fetchRequest()
+        request.predicate = NSPredicate(format: "id == %@", id as CVarArg)
+        request.fetchLimit = 1
+        return try context.fetch(request).first
+    }
+
+    /// A failed save leaves its changes pending in the context, where they would ride along with
+    /// the next unrelated save — so undo them before reporting the failure.
+    private func save() throws {
+        do {
+            try context.save()
+        } catch {
+            context.rollback()
+            throw error
         }
-        
-        let request = NSFetchRequest<WineEntity>(entityName: "WineEntity")
-        request.predicate = NSPredicate(format: "id == %@", wine.id as CVarArg)
-        
-        let entity: WineEntity
-        
-        if let existingEntity = try context.fetch(request).first {
-            entity = existingEntity
-        } else {
-            entity = WineEntity(context: context)
-            entity.id = wine.id
-            entity.dateAdded = wine.dateAdded
-        }
-        
-        // Update properties
+    }
+
+    private func apply(_ wine: Wine, to entity: WineEntity) {
         entity.name = wine.name
         entity.color = wine.color.rawValue
         entity.style = wine.style.rawValue
-        // Convert sweetness to a string for CoreData storage
-        entity.sweetness = Array(wine.sweetness).map { $0.rawValue }.joined(separator: ",")
+        // Stored as a comma-separated string.
+        entity.sweetness = wine.sweetness.map(\.rawValue).joined(separator: ",")
         entity.producer = wine.producer
         entity.notes = wine.notes
-        // Store vintage as Int16
-        if let vintage = wine.vintage {
-            entity.vintage = Int16(vintage)
-        } else {
-            entity.vintage = 0  // or some sentinel value like -1
-        }
+        // Int16 with 0 meaning "no vintage". `Int16(exactly:)`, not `Int16(_:)`, which traps on
+        // anything over 32767; the form only lets real years through, so this is a backstop.
+        entity.vintage = wine.vintage.flatMap { Int16(exactly: $0) } ?? 0
         entity.region = wine.region
         entity.varietal = wine.varietal
         entity.imagePath = wine.imagePath
         entity.isArchived = wine.isArchived
-        
-        try context.save()
-    }
-    
-    func fetchWines(includeArchived: Bool = false) throws -> [Wine] {
-        let request = NSFetchRequest<WineEntity>(entityName: "WineEntity")
-        if !includeArchived {
-            request.predicate = NSPredicate(format: "isArchived == NO")
-        }
-        request.sortDescriptors = [NSSortDescriptor(keyPath: \WineEntity.dateAdded, ascending: false)]
-        
-        let entities = try context.fetch(request)
-        return entities.compactMap { entity in
-            guard let id = entity.id,
-                  let name = entity.name,
-                  let colorString = entity.color,
-                  let color = WineColor(rawValue: colorString),
-                  let styleString = entity.style,
-                  let style = WineStyle(rawValue: styleString) else {
-                return nil
-            }
-            
-            // Convert stored comma-separated string back to Set<WineSweetness>
-            let sweetness = Set((entity.sweetness?.split(separator: ",") ?? [])
-                .compactMap { WineSweetness(rawValue: String($0)) })
-            
-            // Convert vintage from Int16 to Int
-            let vintage: Int?
-            if entity.vintage != 0 {  // assuming 0 is our sentinel value
-                vintage = Int(entity.vintage)
-            } else {
-                vintage = nil
-            }
-            
-            // Create the Wine object with all required fields
-            return Wine(
-                id: id,
-                name: name,
-                color: color,
-                style: style,
-                sweetness: sweetness,
-                producer: entity.producer,
-                vintage: vintage,
-                region: entity.region,
-                varietal: entity.varietal,
-                notes: entity.notes,
-                imagePath: entity.imagePath,
-                dateAdded: entity.dateAdded ?? Date(),
-                isArchived: entity.isArchived
-            )
-        }
-    }
-    
-    func deleteWine(id: UUID) throws {
-        let request = NSFetchRequest<WineEntity>(entityName: "WineEntity")
-        request.predicate = NSPredicate(format: "id == %@", id as CVarArg)
-        
-        let entities = try context.fetch(request)
-        entities.forEach(context.delete)
-        try context.save()
     }
 
-    func toggleArchived(_ wine: Wine) throws {
-        let request = NSFetchRequest<WineEntity>(entityName: "WineEntity")
-        request.predicate = NSPredicate(format: "id == %@", wine.id as CVarArg)
-        
-        if let entity = try context.fetch(request).first {
-            entity.isArchived = !entity.isArchived
-            try context.save()
+    private static func wine(from entity: WineEntity) -> Wine? {
+        guard let id = entity.id,
+              let name = entity.name,
+              let color = entity.color.flatMap(WineColor.init(rawValue:)),
+              let style = entity.style.flatMap(WineStyle.init(rawValue:)) else {
+            return nil
         }
+        let sweetness = Set((entity.sweetness?.split(separator: ",") ?? [])
+            .compactMap { WineSweetness(rawValue: String($0)) })
+
+        return Wine(
+            id: id,
+            name: name,
+            color: color,
+            style: style,
+            sweetness: sweetness,
+            producer: entity.producer,
+            vintage: entity.vintage == 0 ? nil : Int(entity.vintage),
+            region: entity.region,
+            varietal: entity.varietal,
+            notes: entity.notes,
+            imagePath: entity.imagePath,
+            dateAdded: entity.dateAdded ?? Date(),
+            isArchived: entity.isArchived
+        )
     }
 }

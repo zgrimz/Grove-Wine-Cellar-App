@@ -1,43 +1,52 @@
+import PhotosUI
 import SwiftUI
 import UIKit
-import Foundation
 
 struct WineFormView: View {
     @Environment(\.dismiss) private var dismiss
-    @ObservedObject private var viewModel: WineFormViewModel
+    @Environment(AISettings.self) private var aiSettings
+    @Environment(\.displayScale) private var displayScale
+    @State private var viewModel: WineFormViewModel
     @State private var showingImageOptions = false
-    @State private var showingError = false
-    @State private var errorMessage = ""
+    @State private var libraryItem: PhotosPickerItem?
+    @State private var errorMessage: String?
     @State private var showingSweetnessSelection = false
     
-    init(onSave: @escaping (Wine) async -> Void, wine: Wine? = nil) {
-        self.viewModel = WineFormViewModel(onSave: onSave, wine: wine)
+    /// `onSave` persists the wine and throws if it can't; the form stays open and shows the error.
+    /// The model lives in `@State` so it survives re-renders of the presenting view — created in
+    /// `init` as a plain observed object, it was rebuilt (and the user's edits lost) on each one.
+    init(wine: Wine? = nil, onSave: @escaping (Wine) throws -> Void) {
+        _viewModel = State(initialValue: WineFormViewModel(wine: wine, onSave: onSave))
     }
     
     var body: some View {
         Form {
-            Section(header: Text("Photo")) {
-                HStack {
-                    Spacer()
-                    if let image = viewModel.image {
-                        Image(uiImage: image)
-                            .resizable()
-                            .scaledToFit()
-                            .frame(height: 200)
-                    } else {
-                        Image(systemName: "camera")
-                            .font(.system(size: 40))
-                            .foregroundColor(.gray)
-                            .frame(height: 200)
-                    }
-                    Spacer()
-                }
-                .onTapGesture {
+            Section("Photo") {
+                Button {
                     showingImageOptions = true
+                } label: {
+                    HStack {
+                        Spacer()
+                        if let image = viewModel.image {
+                            Image(uiImage: image)
+                                .resizable()
+                                .scaledToFit()
+                                .frame(height: 200)
+                        } else {
+                            Image(systemName: "camera")
+                                .font(.system(size: 40))
+                                .foregroundStyle(.gray)
+                                .frame(height: 200)
+                        }
+                        Spacer()
+                    }
+                    .contentShape(.rect)
                 }
+                .buttonStyle(.plain)
+                .accessibilityLabel(viewModel.image == nil ? "Add Photo" : "Change Photo")
             }
             
-            Section(header: Text("Wine Details")) {
+            Section("Wine Details") {
                 TextField("Name", text: $viewModel.name)
                 Picker("Color", selection: $viewModel.color) {
                     ForEach(WineColor.allCases, id: \.self) { color in
@@ -57,20 +66,25 @@ struct WineFormView: View {
                         Text("Sweetness")
                         Spacer()
                         Text(sweetnessDisplayText)
-                            .foregroundColor(.gray)
+                            .foregroundStyle(.gray)
                     }
                 }
             }
             
-            Section(header: Text("Additional Details")) {
+            Section("Additional Details") {
                 TextField("Producer", text: $viewModel.producer)
                 TextField("Vintage", text: $viewModel.vintage)
                     .keyboardType(.numberPad)
+                if !viewModel.isVintageValid {
+                    Text("Enter a four-digit year, or leave it blank for non-vintage.")
+                        .font(.footnote)
+                        .foregroundStyle(.red)
+                }
                 TextField("Region", text: $viewModel.region)
                 TextField("Varietal", text: $viewModel.varietal)
             }
             
-            Section(header: Text("Notes")) {
+            Section("Notes") {
                 TextEditor(text: $viewModel.notes)
                     .frame(minHeight: 100)
             }
@@ -78,58 +92,51 @@ struct WineFormView: View {
         .navigationTitle(viewModel.isEditMode ? "Edit Wine" : "Add Wine")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
-            ToolbarItem(placement: .navigationBarLeading) {
+            ToolbarItem(placement: .cancellationAction) {
                 Button("Cancel") {
                     dismiss()
                 }
             }
-            ToolbarItem(placement: .navigationBarTrailing) {
+            ToolbarItem(placement: .confirmationAction) {
                 Button("Save") {
                     save()
                 }
-                .disabled(viewModel.name.isEmpty)
+                .disabled(!viewModel.canSave)
             }
         }
-        .sheet(isPresented: $viewModel.showingCamera) {
-            ImagePicker(image: $viewModel.image, sourceType: .camera)
-                .onDisappear {
-                    processImageIfNeeded()
-                }
+        .fullScreenCover(isPresented: $viewModel.showingCamera) {
+            CameraPicker(onCapture: photoPicked)
+                .ignoresSafeArea()
         }
-        .sheet(isPresented: $viewModel.showingImagePicker) {
-            ImagePicker(image: $viewModel.image, sourceType: .photoLibrary)
-                .onDisappear {
-                    processImageIfNeeded()
+        .photosPicker(isPresented: $viewModel.showingPhotoLibrary, selection: $libraryItem, matching: .images)
+        .onChange(of: libraryItem) { _, item in
+            guard let item else { return }
+            libraryItem = nil
+            Task {
+                if let data = try? await item.loadTransferable(type: Data.self), let image = UIImage(data: data) {
+                    photoPicked(image)
+                } else {
+                    errorMessage = "Couldn't load that photo."
                 }
+            }
         }
         .sheet(isPresented: $showingSweetnessSelection) {
             SweetnessSelectionView(selectedSweetness: $viewModel.sweetness)
         }
-        .actionSheet(isPresented: $showingImageOptions) {
-            ActionSheet(
-                title: Text("Add Photo"),
-                buttons: [
-                    .default(Text("Take Photo")) {
-                        viewModel.showingCamera = true
-                    },
-                    .default(Text("Choose from Library")) {
-                        viewModel.showingImagePicker = true
-                    },
-                    .cancel()
-                ]
-            )
+        .confirmationDialog("Add Photo", isPresented: $showingImageOptions) {
+            if CameraPicker.isAvailable {
+                Button("Take Photo") { viewModel.showingCamera = true }
+            }
+            Button("Choose from Library") { viewModel.showingPhotoLibrary = true }
+            Button("Cancel", role: .cancel) {}
         }
-        .alert("Error", isPresented: $showingError) {
-            Button("OK", role: .cancel) { }
-        } message: {
-            Text(errorMessage)
-        }
+        .errorAlert(message: $errorMessage)
+        .task { await viewModel.loadExistingImage(maxPixelLength: 600 * displayScale) }
         .overlay {
             if viewModel.isProcessing {
                 ProgressView("Processing image...")
                     .padding()
-                    .background(Color.secondary.colorInvert())
-                    .cornerRadius(8)
+                    .background(.regularMaterial, in: .rect(cornerRadius: 8))
                     .shadow(radius: 4)
             }
         }
@@ -145,40 +152,27 @@ struct WineFormView: View {
             .joined(separator: ", ")
     }
     
-    private func processImageIfNeeded() {
-        if let image = viewModel.image {
-            Task {
-                do {
-                    let attributes = try await viewModel.processImage(image)
-                    await MainActor.run {
-                        viewModel.name = attributes.name
-                        viewModel.color = attributes.color
-                        viewModel.style = attributes.style
-                        viewModel.sweetness = attributes.sweetness ?? []
-                        viewModel.producer = attributes.producer ?? ""
-                        viewModel.vintage = attributes.vintage.map(String.init) ?? ""
-                        viewModel.region = attributes.region ?? ""
-                        viewModel.varietal = attributes.varietal ?? ""
-                    }
-                } catch {
-                    await MainActor.run {
-                        errorMessage = error.localizedDescription
-                        showingError = true
-                    }
-                }
+    /// Runs only for a newly picked photo. It used to hang off the picker's `onDisappear`, which
+    /// also fires on Cancel — re-scanning the existing photo and overwriting the user's edits.
+    private func photoPicked(_ image: UIImage) {
+        viewModel.image = image
+        // With AI off, a photo is just the wine's photo — no scan, and no error asking for a key.
+        guard aiSettings.isEnabled else { return }
+        Task {
+            do {
+                try await viewModel.scanLabel(image, settings: aiSettings)
+            } catch {
+                errorMessage = error.localizedDescription
             }
         }
     }
     
     private func save() {
-        Task {
-            do {
-                try await viewModel.save()
-                dismiss()
-            } catch {
-                errorMessage = error.localizedDescription
-                showingError = true
-            }
+        do {
+            try viewModel.save()
+            dismiss()
+        } catch {
+            errorMessage = error.localizedDescription
         }
     }
 }

@@ -13,6 +13,6 @@ struct Badge: View {
                 RoundedRectangle(cornerRadius: 4)
                     .fill(color.opacity(0.2))
             )
-            .foregroundColor(color)
+            .foregroundStyle(color)
     }
 }

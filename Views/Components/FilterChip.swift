@@ -16,7 +16,9 @@ struct FilterChip: View {
                         .fill(isSelected ? Color.accentColor :
                               Color.secondary.opacity(0.2))
                 )
-                .foregroundColor(isSelected ? .white : .primary)
+                .foregroundStyle(isSelected ? Color.white : Color.primary)
         }
+        // Selection is otherwise shown by color alone.
+        .accessibilityAddTraits(isSelected ? .isSelected : [])
     }
 }

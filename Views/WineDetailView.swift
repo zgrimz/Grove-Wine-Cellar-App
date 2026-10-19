@@ -1,16 +1,28 @@
 import SwiftUI
 import UIKit
-import Foundation
 
+/// Looks its wine up in the store by id rather than holding a copy, so an edit made anywhere shows
+/// up here at once — and a wine deleted elsewhere can't be edited back into existence.
 struct WineDetailView: View {
-    let wine: Wine
-    let onUpdate: (Wine) async -> Void
+    let wineID: UUID
+    @Environment(WineStore.self) private var store
     @State private var image: UIImage?
     @State private var showingEditSheet = false
     @State private var showingDeleteAlert = false
+    @State private var errorMessage: String?
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.displayScale) private var displayScale
     
     var body: some View {
+        if let wine = store.wine(id: wineID) {
+            details(for: wine)
+        } else {
+            ContentUnavailableView("Wine Not Found", systemImage: "wineglass",
+                                   description: Text("This wine has been deleted."))
+        }
+    }
+
+    private func details(for wine: Wine) -> some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
                 if let image = image {
@@ -32,7 +44,7 @@ struct WineDetailView: View {
                     }
                     
                     HStack {
-                        Badge(text: wine.color.rawValue, color: colorFor(wine.color))
+                        Badge(text: wine.color.rawValue, color: wine.color.tint)
                         Badge(text: wine.style.rawValue, color: .gray)
                     }
                     
@@ -40,7 +52,7 @@ struct WineDetailView: View {
                         VStack(alignment: .leading, spacing: 4) {
                             Text("Sweetness:")
                                 .font(.subheadline)
-                                .foregroundColor(.secondary)
+                                .foregroundStyle(.secondary)
                             
                             HStack {
                                 ForEach(Array(wine.sweetness).sorted(by: { $0.rawValue < $1.rawValue }), id: \.self) { sweetness in
@@ -80,10 +92,8 @@ struct WineDetailView: View {
                 
                 VStack(spacing: 16) {
                     Button(action: {
-                        Task {
-                            var updatedWine = wine
-                            updatedWine.isArchived.toggle()
-                            await onUpdate(updatedWine)
+                        perform {
+                            try store.setArchived(!wine.isArchived, for: wine)
                             dismiss()
                         }
                     }) {
@@ -94,8 +104,8 @@ struct WineDetailView: View {
                         .frame(maxWidth: .infinity)
                         .padding()
                         .background(Color.orange.opacity(0.1))
-                        .foregroundColor(.orange)
-                        .cornerRadius(10)
+                        .foregroundStyle(.orange)
+                        .clipShape(.rect(cornerRadius: 10))
                     }
                     
                     Button(role: .destructive) {
@@ -108,8 +118,8 @@ struct WineDetailView: View {
                         .frame(maxWidth: .infinity)
                         .padding()
                         .background(Color.red.opacity(0.1))
-                        .foregroundColor(.red)
-                        .cornerRadius(10)
+                        .foregroundStyle(.red)
+                        .clipShape(.rect(cornerRadius: 10))
                     }
                 }
                 .padding()
@@ -117,29 +127,21 @@ struct WineDetailView: View {
         }
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
-            ToolbarItem(placement: .navigationBarTrailing) {
+            ToolbarItem(placement: .topBarTrailing) {
                 Button("Edit") {
                     showingEditSheet = true
                 }
             }
         }
         .sheet(isPresented: $showingEditSheet) {
-            NavigationView {
-                WineFormView(
-                    onSave: { updatedWine in
-                        Task {
-                            await onUpdate(updatedWine)
-                            showingEditSheet = false
-                        }
-                    },
-                    wine: wine
-                )
+            NavigationStack {
+                WineFormView(wine: wine) { try store.update($0) }
             }
         }
         .alert("Delete Wine", isPresented: $showingDeleteAlert) {
             Button("Delete", role: .destructive) {
-                Task {
-                    await onUpdate(wine.deleteFlag())
+                perform {
+                    try store.delete(wine)
                     dismiss()
                 }
             }
@@ -147,25 +149,19 @@ struct WineDetailView: View {
         } message: {
             Text("Are you sure you want to delete this wine? This action cannot be undone.")
         }
-        .onAppear {
-            if let imagePath = wine.imagePath {
-                image = ImageStorageService.shared.loadImage(fromPath: imagePath)
-            }
+        .errorAlert(message: $errorMessage)
+        // Keyed on the path so a photo changed in the edit sheet shows up; onAppear ran only once.
+        .task(id: wine.imagePath) {
+            guard let imagePath = wine.imagePath else { image = nil; return }
+            image = await ImageStorageService.shared.loadImage(fromPath: imagePath, maxPixelLength: 600 * displayScale)
         }
     }
-    
-    private func colorFor(_ color: WineColor) -> Color {
-        switch color {
-        case .red:
-            return .red
-        case .white:
-            return .yellow
-        case .rose:
-            return .pink
-        case .orange:
-            return .orange
-        case .other:
-            return .gray
+
+    private func perform(_ action: () throws -> Void) {
+        do {
+            try action()
+        } catch {
+            errorMessage = error.localizedDescription
         }
     }
 }

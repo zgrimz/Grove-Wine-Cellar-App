@@ -1,47 +1,54 @@
 import SwiftUI
-import Foundation
 
 struct WineListView: View {
-    @ObservedObject var viewModel: WineListViewModel
+    @Environment(WineStore.self) private var store
+    @State private var searchText = ""
+    @State private var selectedColor: WineColor?
+    @State private var selectedStyle: WineStyle?
+    @State private var showArchived = false
     @State private var showingAddWine = false
     @State private var wineToDelete: Wine? = nil
     @State private var showingDeleteAlert = false
     @State private var showingFilterPanel = false
-    
+    @State private var errorMessage: String?
+
+    private var filteredWines: [Wine] {
+        store.wines.filter { wine in
+            let matchesSearch = searchText.isEmpty ||
+                wine.name.localizedCaseInsensitiveContains(searchText) ||
+                wine.producer?.localizedCaseInsensitiveContains(searchText) == true ||
+                wine.region?.localizedCaseInsensitiveContains(searchText) == true ||
+                wine.varietal?.localizedCaseInsensitiveContains(searchText) == true ||
+                wine.notes?.localizedCaseInsensitiveContains(searchText) == true ||
+                wine.vintage.map { String($0).contains(searchText) } == true
+            let matchesColor = selectedColor == nil || wine.color == selectedColor
+            let matchesStyle = selectedStyle == nil || wine.style == selectedStyle
+            let matchesArchiveState = wine.isArchived == showArchived
+            return matchesSearch && matchesColor && matchesStyle && matchesArchiveState
+        }
+    }
+
     var body: some View {
         List {
-            SearchBarView(text: $viewModel.searchText)
-                .listRowInsets(EdgeInsets())
-                .listRowBackground(Color.clear)
-            
             HStack {
-                ColorFilterView(selectedColor: $viewModel.selectedColor)
-                
+                ColorFilterView(selectedColor: $selectedColor)
+
                 Spacer()
-                
-                Button(action: {
+
+                Button {
                     showingFilterPanel = true
-                }) {
-                    Image(systemName: "line.3.horizontal.decrease.circle")
+                } label: {
+                    Label("Filters", systemImage: "line.3.horizontal.decrease.circle")
+                        .labelStyle(.iconOnly)
                         .font(.title2)
-                        .foregroundColor(.accentColor)
                 }
                 .padding(.trailing)
             }
             .listRowInsets(EdgeInsets())
             .listRowBackground(Color.clear)
-            
-            ForEach(viewModel.filteredWines) { wine in
-                NavigationLink(
-                    destination: WineDetailView(
-                        wine: wine,
-                        onUpdate: { updatedWine in
-                            Task {
-                                await viewModel.updateWine(updatedWine)
-                            }
-                        }
-                    )
-                ) {
+
+            ForEach(filteredWines) { wine in
+                NavigationLink(value: Route.wine(wine.id)) {
                     WineRowView(wine: wine)
                 }
                 .swipeActions(edge: .trailing, allowsFullSwipe: false) {
@@ -51,9 +58,9 @@ struct WineListView: View {
                     } label: {
                         Label("Delete", systemImage: "trash")
                     }
-                    
+
                     Button {
-                        viewModel.toggleArchived(wine)
+                        perform { try store.setArchived(!wine.isArchived, for: wine) }
                     } label: {
                         Label(wine.isArchived ? "Unarchive" : "Archive",
                               systemImage: wine.isArchived ? "archivebox.circle.fill" : "archivebox")
@@ -61,71 +68,53 @@ struct WineListView: View {
                     .tint(.orange)
                 }
             }
-            .onDelete { indexSet in
-                if let index = indexSet.first {
-                    wineToDelete = viewModel.filteredWines[index]
-                    showingDeleteAlert = true
-                }
-            }
-            
+
             // Add full-width button at bottom of list
             Button(action: {
-                viewModel.showArchived.toggle()
-                Task {
-                    await viewModel.loadWines()
-                }
+                showArchived.toggle()
             }) {
                 HStack {
-                    Image(systemName: viewModel.showArchived ? "archivebox.circle.fill" : "archivebox")
-                    Text(viewModel.showArchived ? "View Current Inventory" : "View Archived Wines")
+                    Image(systemName: showArchived ? "archivebox.circle.fill" : "archivebox")
+                    Text(showArchived ? "View Current Inventory" : "View Archived Wines")
                 }
                 .frame(maxWidth: .infinity)
                 .padding()
                 .background(Color.secondary.opacity(0.1))
-                .cornerRadius(10)
+                .clipShape(.rect(cornerRadius: 10))
             }
-            .buttonStyle(PlainButtonStyle())
+            .buttonStyle(.plain)
             .listRowInsets(EdgeInsets())
             .listRowBackground(Color.clear)
             .padding(.vertical)
         }
         .navigationTitle("Grove Wine Cellar")
+        .searchable(text: $searchText, prompt: "Search wines")
         .toolbar {
-            ToolbarItem(placement: .navigationBarTrailing) {
-                Button(action: { showingAddWine = true }) {
-                    Image(systemName: "plus")
+            ToolbarItem(placement: .topBarTrailing) {
+                Button { showingAddWine = true } label: {
+                    Label("Add Wine", systemImage: "plus")
                 }
             }
         }
         .sheet(isPresented: $showingAddWine) {
-            NavigationView {
-                WineFormView(
-                    onSave: { newWine in
-                        Task {
-                            await viewModel.addWine(newWine)
-                            showingAddWine = false
-                        }
-                    }
-                )
+            NavigationStack {
+                WineFormView { try store.add($0) }
             }
         }
         .sheet(isPresented: $showingFilterPanel) {
             FilterPanelView(
-                selectedColor: $viewModel.selectedColor,
-                selectedStyle: $viewModel.selectedStyle,
+                selectedColor: $selectedColor,
+                selectedStyle: $selectedStyle,
                 isPresented: $showingFilterPanel
             )
         }
         .refreshable {
-            await viewModel.loadWines()
-        }
-        .onAppear {
-            print("View appeared. Total wines: \(viewModel.filteredWines.count)")
+            store.load()
         }
         .alert("Delete Wine", isPresented: $showingDeleteAlert) {
             Button("Delete", role: .destructive) {
                 if let wine = wineToDelete {
-                    viewModel.deleteWine(wine)
+                    perform { try store.delete(wine) }
                     wineToDelete = nil
                 }
             }
@@ -134,6 +123,15 @@ struct WineListView: View {
             }
         } message: {
             Text("Are you sure you want to delete this wine? This action cannot be undone.")
+        }
+        .errorAlert(message: $errorMessage)
+    }
+
+    private func perform(_ action: () throws -> Void) {
+        do {
+            try action()
+        } catch {
+            errorMessage = error.localizedDescription
         }
     }
 }

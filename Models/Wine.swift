@@ -1,6 +1,6 @@
 import Foundation
 
-struct Wine: Identifiable, Codable {
+struct Wine: Identifiable {
     let id: UUID
     var name: String
     var color: WineColor
@@ -13,8 +13,7 @@ struct Wine: Identifiable, Codable {
     var notes: String?
     var imagePath: String?
     var dateAdded: Date
-    var isArchived: Bool 
-    var markedForDeletion: Bool = false
+    var isArchived: Bool
     
     init(
         id: UUID = UUID(),
@@ -29,8 +28,7 @@ struct Wine: Identifiable, Codable {
         notes: String? = nil,
         imagePath: String? = nil,
         dateAdded: Date = Date(),
-        isArchived: Bool = false,
-        markedForDeletion: Bool = false
+        isArchived: Bool = false
     ) {
         self.id = id
         self.name = name
@@ -45,15 +43,5 @@ struct Wine: Identifiable, Codable {
         self.imagePath = imagePath
         self.dateAdded = dateAdded
         self.isArchived = isArchived
-        self.markedForDeletion = markedForDeletion
-    }
-}
-
-extension Wine {
-    func deleteFlag() -> Wine {
-        var copy = self
-        copy.isArchived = true
-        copy.markedForDeletion = true
-        return copy
     }
 }

@@ -4,6 +4,7 @@ import Foundation
 
 struct WineRowView: View {
     let wine: Wine
+    @Environment(\.displayScale) private var displayScale
     @State private var image: UIImage?
     
     var body: some View {
@@ -22,7 +23,7 @@ struct WineRowView: View {
                     .overlay(
                         Image(systemName: "wineglass.fill")
                             .font(.title2)
-                            .foregroundColor(.secondary)
+                            .foregroundStyle(.secondary)
                     )
             }
             
@@ -38,10 +39,10 @@ struct WineRowView: View {
                     HStack(spacing: 4) {
                         Image(systemName: "building.2")
                             .font(.caption)
-                            .foregroundColor(.secondary)
+                            .foregroundStyle(.secondary)
                         Text(producer)
                             .font(.subheadline)
-                            .foregroundColor(.secondary)
+                            .foregroundStyle(.secondary)
                     }
                 }
                 
@@ -52,8 +53,8 @@ struct WineRowView: View {
                         .font(.caption)
                         .padding(.horizontal, 8)
                         .padding(.vertical, 4)
-                        .background(colorFor(wine.color).opacity(0.15))
-                        .foregroundColor(colorFor(wine.color))
+                        .background(wine.color.tint.opacity(0.15))
+                        .foregroundStyle(wine.color.tint)
                         .clipShape(Capsule())
                     
                     // Vintage with prominent display
@@ -70,25 +71,10 @@ struct WineRowView: View {
             }
         }
         .padding(.vertical, 8)
-        .onAppear {
-            if let imagePath = wine.imagePath {
-                image = ImageStorageService.shared.loadImage(fromPath: imagePath)
-            }
-        }
-    }
-    
-    private func colorFor(_ wineColor: WineColor) -> Color {
-        switch wineColor {
-        case .red:
-            return Color(red: 0.7, green: 0.2, blue: 0.2)
-        case .white:
-            return Color(red: 0.9, green: 0.9, blue: 0.7)
-        case .rose:
-            return Color(red: 0.9, green: 0.6, blue: 0.7)
-        case .orange:
-            return Color.orange
-        case .other:
-            return Color.secondary
+        // Keyed on the path: rows keep their state by wine id, so onAppear left a replaced photo stale.
+        .task(id: wine.imagePath) {
+            guard let imagePath = wine.imagePath else { image = nil; return }
+            image = await ImageStorageService.shared.loadImage(fromPath: imagePath, maxPixelLength: 80 * displayScale)
         }
     }
 }

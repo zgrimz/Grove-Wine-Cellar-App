@@ -6,7 +6,7 @@ Grove Wine Cellar is a basic wine tracking iOS application designed to help wine
 
 ## Features
 
-- **AI Label Recognition**: Take a photo of your wine bottle label and let the app identify and auto-populate wine details using Claude Vision AI
+- **AI Label Recognition**: Take a photo of your wine bottle label and let the app identify and auto-populate wine details using your chosen AI provider
 - **Wine Tracking**: Track wine name, producer, vintage, region, varietal, color, style, and sweetness level
 - **Filter and Search**: Filter your collection by color (red, white, rosé, orange) and style (still, sparkling, fortified), as well as search your inventory
 - **Archive System**: Easily archive consumed wines while maintaining your historical record
@@ -25,4 +25,4 @@ Grove Wine Cellar is a basic wine tracking iOS application designed to help wine
 - Uses Core Data for local storage of wine information
 - Camera integration for wine label photos
 - Image storage with efficient compression
-- Uses Claude API for vision and LLM querying
+- AI features use your own Anthropic or OpenAI API key, stored in the device Keychain; models are loaded live from the provider, so none are hardcoded

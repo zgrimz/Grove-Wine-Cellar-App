@@ -9,7 +9,7 @@ struct DetailRow: View {
             VStack(alignment: .leading, spacing: 4) {
                 Text(label)
                     .font(.subheadline)
-                    .foregroundColor(.secondary)
+                    .foregroundStyle(.secondary)
                 
                 Text(value)
                     .font(.body)

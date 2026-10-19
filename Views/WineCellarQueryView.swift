@@ -1,130 +1,116 @@
-// Views/WineCellarQueryView.swift
 import SwiftUI
-import Combine
 
 struct WineCellarQueryView: View {
-    @StateObject private var viewModel: WineCellarQueryViewModel
+    @Environment(WineStore.self) private var store
+    @Environment(AISettings.self) private var aiSettings
+    @State private var viewModel = WineCellarQueryViewModel()
     @FocusState private var isFocused: Bool
-    @State private var keyboardHeight: CGFloat = 0
-    
-    init(repository: WineRepository) {
-        _viewModel = StateObject(wrappedValue: WineCellarQueryViewModel(repository: repository))
+
+    /// Looked up live rather than captured with the result, so archiving, editing or deleting the
+    /// wine from its detail screen is reflected here when the user comes back.
+    private func matchedWine(for recommendation: WineRecommendation) -> Wine? {
+        recommendation.wineID.flatMap(store.wine(id:))
     }
     
     var body: some View {
         VStack(spacing: 20) {
-            if let pairing = viewModel.currentPairing {
+            if case .result(let recommendation) = viewModel.state {
                 ScrollView {
                     VStack(alignment: .leading, spacing: 24) {
                         // Header with wine glass icon
                         HStack {
                             Image(systemName: "wineglass.fill")
                                 .font(.title2)
-                                .foregroundColor(.accentColor)
+                                .foregroundStyle(Color.accentColor)
                             Text("Your Pairing Recommendation")
                                 .font(.title2)
                                 .fontWeight(.semibold)
                         }
                         
-                        // Display structured content using the actual recommendation object
-                        if let recommendation = viewModel.currentRecommendation {
-                            // Recommended wine card
-                            VStack(alignment: .leading, spacing: 12) {
-                                HStack {
-                                    Image(systemName: "star.fill")
-                                        .foregroundColor(.yellow)
-                                    Text("Recommended Wine")
-                                        .font(.headline)
-                                        .fontWeight(.semibold)
-                                    
-                                    Spacer()
-                                    
-                                    // Show navigation indicator if wine is in inventory
-                                    if viewModel.matchedWine != nil {
-                                        Image(systemName: "chevron.right")
-                                            .font(.caption)
-                                            .foregroundColor(.secondary)
-                                    }
-                                }
+                        // Recommended wine card
+                        VStack(alignment: .leading, spacing: 12) {
+                            HStack {
+                                Image(systemName: "star.fill")
+                                    .foregroundStyle(.yellow)
+                                Text("Recommended Wine")
+                                    .font(.headline)
+                                    .fontWeight(.semibold)
                                 
-                                Group {
-                                    if let matchedWine = viewModel.matchedWine {
-                                        NavigationLink(destination: WineDetailView(wine: matchedWine, onUpdate: { updatedWine in
-                                            Task {
-                                                await viewModel.updateWine(updatedWine)
-                                            }
-                                        })) {
-                                            wineCardContent(recommendation: recommendation, matchedWine: matchedWine)
-                                        }
-                                        .buttonStyle(PlainButtonStyle())
-                                    } else {
-                                        wineCardContent(recommendation: recommendation, matchedWine: nil)
-                                    }
-                                }
-                            }
-                            
-                            // Confidence indicator
-                            VStack(alignment: .leading, spacing: 8) {
-                                Text("Confidence Level")
-                                    .font(.subheadline)
-                                    .fontWeight(.medium)
+                                Spacer()
                                 
-                                HStack {
-                                    ProgressView(value: Double(recommendation.pairingConfidence), total: 10)
-                                        .progressViewStyle(LinearProgressViewStyle(tint: recommendation.pairingConfidence >= 8 ? .green : recommendation.pairingConfidence >= 6 ? .orange : .red))
-                                    Text("\(recommendation.pairingConfidence)/10")
+                                // Show navigation indicator if wine is in inventory
+                                if matchedWine(for: recommendation) != nil {
+                                    Image(systemName: "chevron.right")
                                         .font(.caption)
-                                        .fontWeight(.medium)
+                                        .foregroundStyle(.secondary)
                                 }
                             }
                             
-                            // Reasons with better formatting
-                            if !recommendation.whyThisPair.isEmpty {
-                                VStack(alignment: .leading, spacing: 12) {
-                                    Text("Why This Pairing Works")
-                                        .font(.headline)
-                                        .fontWeight(.semibold)
-                                    
-                                    ForEach(recommendation.whyThisPair, id: \.self) { reason in
-                                        HStack(alignment: .top, spacing: 8) {
-                                            Image(systemName: "checkmark.circle.fill")
-                                                .foregroundColor(.green)
-                                                .font(.caption)
-                                            Text(reason)
-                                                .font(.body)
-                                        }
+                            Group {
+                                if let matchedWine = matchedWine(for: recommendation) {
+                                    NavigationLink(value: Route.wine(matchedWine.id)) {
+                                        wineCardContent(recommendation: recommendation, matchedWine: matchedWine)
                                     }
+                                    .buttonStyle(.plain)
+                                } else {
+                                    wineCardContent(recommendation: recommendation, matchedWine: nil)
                                 }
                             }
+                        }
+                        
+                        // Confidence indicator
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Confidence Level")
+                                .font(.subheadline)
+                                .fontWeight(.medium)
                             
-                            // Alternative suggestion
-                            if let betterPairing = recommendation.betterPairingRecommendation {
-                                VStack(alignment: .leading, spacing: 8) {
-                                    Text("Alternative Suggestion")
-                                        .font(.headline)
-                                        .fontWeight(.semibold)
-                                    
-                                    VStack(alignment: .leading, spacing: 4) {
-                                        Text(betterPairing.wine)
-                                            .font(.subheadline)
-                                            .fontWeight(.medium)
-                                        Text(betterPairing.explanation)
+                            HStack {
+                                ProgressView(value: Double(recommendation.pairingConfidence), total: 10)
+                                    .tint(recommendation.pairingConfidence >= 8 ? .green : recommendation.pairingConfidence >= 6 ? .orange : .red)
+                                Text("\(recommendation.pairingConfidence)/10")
+                                    .font(.caption)
+                                    .fontWeight(.medium)
+                            }
+                        }
+                        
+                        // Reasons with better formatting
+                        if !recommendation.whyThisPair.isEmpty {
+                            VStack(alignment: .leading, spacing: 12) {
+                                Text("Why This Pairing Works")
+                                    .font(.headline)
+                                    .fontWeight(.semibold)
+                                
+                                ForEach(recommendation.whyThisPair, id: \.self) { reason in
+                                    HStack(alignment: .top, spacing: 8) {
+                                        Image(systemName: "checkmark.circle.fill")
+                                            .foregroundStyle(.green)
+                                            .font(.caption)
+                                        Text(reason)
                                             .font(.body)
                                     }
-                                    .padding()
-                                    .frame(maxWidth: .infinity, alignment: .leading)
-                                    .background(Color.orange.opacity(0.1))
-                                    .cornerRadius(12)
                                 }
                             }
-                        } else {
-                            // Fallback to original display
-                            Text(pairing.content)
-                                .font(.body)
+                        }
+                        
+                        // Alternative suggestion
+                        if let betterPairing = recommendation.betterPairingRecommendation {
+                            VStack(alignment: .leading, spacing: 8) {
+                                Text("Alternative Suggestion")
+                                    .font(.headline)
+                                    .fontWeight(.semibold)
+                                
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text(betterPairing.wine)
+                                        .font(.subheadline)
+                                        .fontWeight(.medium)
+                                    Text(betterPairing.explanation)
+                                        .font(.body)
+                                }
                                 .padding()
                                 .frame(maxWidth: .infinity, alignment: .leading)
-                                .background(Color.secondary.opacity(0.1))
-                                .cornerRadius(12)
+                                .background(Color.orange.opacity(0.1))
+                                .clipShape(.rect(cornerRadius: 12))
+                            }
                         }
                     }
                     .padding()
@@ -148,7 +134,7 @@ struct WineCellarQueryView: View {
                         
                         Text("Get personalized recommendations from your cellar")
                             .font(.subheadline)
-                            .foregroundColor(.secondary)
+                            .foregroundStyle(.secondary)
                             .multilineTextAlignment(.center)
                     }
                     
@@ -162,7 +148,7 @@ struct WineCellarQueryView: View {
                             Text("Food & Meals").tag(PairingType.food)
                             Text("Special Occasions").tag(PairingType.occasion)
                         }
-                        .pickerStyle(SegmentedPickerStyle())
+                        .pickerStyle(.segmented)
                     }
                     
                     // Wine type as 2x3 grid with better visual design
@@ -172,28 +158,10 @@ struct WineCellarQueryView: View {
                             .fontWeight(.medium)
                         
                         LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 2), spacing: 12) {
-                            WineTypeCard(title: "Any", isSelected: viewModel.selectedWineColor == nil) {
-                                viewModel.selectedWineColor = nil
-                            }
-                            
-                            WineTypeCard(title: "Red", color: colorFor(.red), isSelected: viewModel.selectedWineColor == .red) {
-                                viewModel.selectedWineColor = .red
-                            }
-                            
-                            WineTypeCard(title: "White", color: colorFor(.white), isSelected: viewModel.selectedWineColor == .white) {
-                                viewModel.selectedWineColor = .white
-                            }
-                            
-                            WineTypeCard(title: "Rosé", color: colorFor(.rose), isSelected: viewModel.selectedWineColor == .rose) {
-                                viewModel.selectedWineColor = .rose
-                            }
-                            
-                            WineTypeCard(title: "Orange", color: colorFor(.orange), isSelected: viewModel.selectedWineColor == .orange) {
-                                viewModel.selectedWineColor = .orange
-                            }
-                            
-                            WineTypeCard(title: "Other", color: colorFor(.other), isSelected: viewModel.selectedWineColor == .other) {
-                                viewModel.selectedWineColor = .other
+                            ForEach([nil] + WineColor.allCases.map(Optional.some), id: \.self) { color in
+                                WineTypeCard(wineColor: color, isSelected: viewModel.selectedWineColor == color) {
+                                    viewModel.selectedWineColor = color
+                                }
                             }
                         }
                     }
@@ -202,7 +170,7 @@ struct WineCellarQueryView: View {
                     VStack(spacing: 16) {
                         HStack {
                             Image(systemName: "magnifyingglass")
-                                .foregroundColor(.secondary)
+                                .foregroundStyle(.secondary)
                             
                             TextField(viewModel.pairingType == .food ? "Enter food or meal..." : "Enter occasion...", text: $viewModel.foodInput)
                                 .font(.body)
@@ -211,14 +179,21 @@ struct WineCellarQueryView: View {
                         }
                         .padding()
                         .background(Color(.systemGray6))
-                        .cornerRadius(12)
+                        .clipShape(.rect(cornerRadius: 12))
                         .onTapGesture {
                             isFocused = true
                         }
                         
+                        if case .failed(let message) = viewModel.state {
+                            Label(message, systemImage: "exclamationmark.triangle")
+                                .font(.footnote)
+                                .foregroundStyle(.red)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                        }
+
                         Button(action: {
                             Task {
-                                await viewModel.getPairing()
+                                await viewModel.getPairing(from: store.wines, settings: aiSettings)
                             }
                         }) {
                             HStack {
@@ -228,11 +203,11 @@ struct WineCellarQueryView: View {
                             }
                             .frame(maxWidth: .infinity)
                             .padding()
-                            .background(viewModel.foodInput.isEmpty || viewModel.isLoading ? Color.secondary : Color.accentColor)
-                            .foregroundColor(.white)
-                            .cornerRadius(12)
+                            .background(viewModel.canRequestPairing ? Color.accentColor : Color.secondary)
+                            .foregroundStyle(.white)
+                            .clipShape(.rect(cornerRadius: 12))
                         }
-                        .disabled(viewModel.foodInput.isEmpty || viewModel.isLoading)
+                        .disabled(!viewModel.canRequestPairing)
                     }
                     .id("inputSection")
                     
@@ -240,7 +215,8 @@ struct WineCellarQueryView: View {
                 .padding()
                 }
                 .scrollDismissesKeyboard(.interactively)
-                .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillShowNotification)) { _ in
+                .onChange(of: isFocused) { _, focused in
+                    guard focused else { return }
                     withAnimation(.easeInOut(duration: 0.5)) {
                         proxy.scrollTo("inputSection", anchor: .bottom)
                     }
@@ -253,8 +229,7 @@ struct WineCellarQueryView: View {
             if viewModel.isLoading {
                 ProgressView()
                     .padding()
-                    .background(Color.secondary.colorInvert())
-                    .cornerRadius(8)
+                    .background(.regularMaterial, in: .rect(cornerRadius: 8))
                     .shadow(radius: 4)
             }
         }
@@ -265,12 +240,12 @@ struct WineCellarQueryView: View {
             Text(recommendation.recommendation)
                 .font(.title3)
                 .fontWeight(.medium)
-                .foregroundColor(.primary)
+                .foregroundStyle(.primary)
             
             HStack {
                 Text(recommendation.recommendedWine.producer)
                     .font(.subheadline)
-                    .foregroundColor(.secondary)
+                    .foregroundStyle(.secondary)
                 
                 Spacer()
                 
@@ -292,8 +267,8 @@ struct WineCellarQueryView: View {
                         .font(.caption)
                         .padding(.horizontal, 8)
                         .padding(.vertical, 4)
-                        .background(colorFor(wine.color).opacity(0.15))
-                        .foregroundColor(colorFor(wine.color))
+                        .background(wine.color.tint.opacity(0.15))
+                        .foregroundStyle(wine.color.tint)
                         .clipShape(Capsule())
                     
                     Text(wine.style.rawValue)
@@ -308,43 +283,6 @@ struct WineCellarQueryView: View {
         .padding()
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(Color.accentColor.opacity(0.1))
-        .cornerRadius(12)
+        .clipShape(.rect(cornerRadius: 12))
     }
-    
-    private func parseRecommendation(from content: String) -> ParsedRecommendation? {
-        let lines = content.components(separatedBy: .newlines)
-        var wine: String?
-        var confidence: Int?
-        var reasons: [String] = []
-        var alternative: String?
-        
-        for line in lines {
-            let trimmed = line.trimmingCharacters(in: .whitespacesAndNewlines)
-            
-            if trimmed.hasPrefix("Recommended Wine:") {
-                wine = String(trimmed.dropFirst("Recommended Wine:".count)).trimmingCharacters(in: .whitespaces)
-            } else if trimmed.hasPrefix("Pairing Confidence:") {
-                let confidenceString = String(trimmed.dropFirst("Pairing Confidence:".count)).trimmingCharacters(in: .whitespaces)
-                confidence = Int(confidenceString.components(separatedBy: "/").first ?? "")
-            } else if trimmed.hasPrefix("Alternative Suggestion:") {
-                alternative = String(trimmed.dropFirst("Alternative Suggestion:".count)).trimmingCharacters(in: .whitespaces)
-            } else if !trimmed.isEmpty && !trimmed.hasPrefix("Why This Pairing Works:") && !trimmed.hasPrefix("Pairing Confidence:") && wine != nil {
-                // This might be a reason
-                reasons.append(trimmed)
-            }
-        }
-        
-        if let wine = wine {
-            return ParsedRecommendation(wine: wine, confidence: confidence, reasons: reasons, alternative: alternative)
-        }
-        
-        return nil
-    }
-}
-
-struct ParsedRecommendation {
-    let wine: String
-    let confidence: Int?
-    let reasons: [String]
-    let alternative: String?
 }

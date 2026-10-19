@@ -1,35 +1,41 @@
-// Views/ContentView.swift
 import SwiftUI
 
+/// Every push destination in the app, registered once at the root of the stack.
+enum Route: Hashable {
+    case wine(UUID)
+    case pairing
+}
+
 struct ContentView: View {
-    @StateObject private var viewModel: WineListViewModel
-    private let repository: WineRepository  // Add this
+    @Environment(WineStore.self) private var store
     @State private var showingSettings = false
     
-    init(repository: WineRepository) {
-        self.repository = repository  // Store repository
-        _viewModel = StateObject(wrappedValue: WineListViewModel(repository: repository))
-    }
-    
     var body: some View {
-        NavigationView {
-            WineListView(viewModel: viewModel)
+        NavigationStack {
+            WineListView()
                 .toolbar {
-                    ToolbarItem(placement: .navigationBarLeading) {
-                        Button(action: { showingSettings = true }) {
-                            Image(systemName: "gear")
+                    ToolbarItem(placement: .topBarLeading) {
+                        Button { showingSettings = true } label: {
+                            Label("Settings", systemImage: "gear")
                         }
                     }
                     
-                    ToolbarItem(placement: .navigationBarTrailing) {
-                        NavigationLink(destination: WineCellarQueryView(repository: repository)) {  // Use stored repository
-                            Image(systemName: "message.circle")
+                    ToolbarItem(placement: .topBarTrailing) {
+                        NavigationLink(value: Route.pairing) {
+                            Label("Wine Pairing", systemImage: "message.circle")
                         }
+                    }
+                }
+                .navigationDestination(for: Route.self) { route in
+                    switch route {
+                    case .wine(let id): WineDetailView(wineID: id)
+                    case .pairing: WineCellarQueryView()
                     }
                 }
                 .sheet(isPresented: $showingSettings) {
                     SettingsView()
                 }
         }
+        .task { store.load() }
     }
 }

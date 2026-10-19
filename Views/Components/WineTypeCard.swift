@@ -1,68 +1,48 @@
 import SwiftUI
 
+/// A selectable card for a wine color, or for "Any" when `wineColor` is nil.
 struct WineTypeCard: View {
-    let title: String
-    let color: Color?
+    let wineColor: WineColor?
     let isSelected: Bool
     let action: () -> Void
-    
-    init(title: String, color: Color? = nil, isSelected: Bool, action: @escaping () -> Void) {
-        self.title = title
-        self.color = color
-        self.isSelected = isSelected
-        self.action = action
-    }
-    
+
+    private var title: String { wineColor?.rawValue ?? "Any" }
+    private var tint: Color { wineColor?.tint ?? .accentColor }
+
     var body: some View {
         Button(action: action) {
             VStack(spacing: 8) {
-                Image(systemName: iconName)
+                Image(systemName: wineColor?.symbolName ?? "wineglass")
                     .font(.title2)
-                    .foregroundColor(isSelected ? .white : (color ?? .secondary))
-                
+                    .foregroundStyle(tint)
+
                 Text(title)
                     .font(.subheadline)
-                    .fontWeight(.medium)
-                    .foregroundColor(isSelected ? .white : .primary)
+                    .fontWeight(isSelected ? .semibold : .medium)
+                    .foregroundStyle(isSelected ? tint : Color.primary)
             }
             .frame(maxWidth: .infinity)
             .padding(.vertical, 16)
             .background(
                 RoundedRectangle(cornerRadius: 12)
-                    .fill(isSelected ? (color ?? Color.accentColor) : Color(.systemGray6))
+                    .fill(isSelected ? tint.opacity(0.15) : Color(.systemGray6))
             )
             .overlay(
                 RoundedRectangle(cornerRadius: 12)
-                    .stroke(isSelected ? (color ?? Color.accentColor) : Color.clear, lineWidth: 2)
+                    .stroke(isSelected ? tint : Color.clear, lineWidth: 2)
             )
         }
-        .buttonStyle(PlainButtonStyle())
-    }
-    
-    private var iconName: String {
-        switch title.lowercased() {
-        case "any":
-            return "wineglass"
-        case "red":
-            return "wineglass.fill"
-        case "white":
-            return "wineglass"
-        case "rosé", "rose":
-            return "wineglass.fill"
-        case "orange":
-            return "wineglass.fill"
-        case "other":
-            return "questionmark.circle"
-        default:
-            return "wineglass"
-        }
+        .buttonStyle(.plain)
+        // Selection is otherwise shown by color alone.
+        .accessibilityAddTraits(isSelected ? .isSelected : [])
     }
 }
 
 #Preview {
     HStack {
-        WineTypeCard(title: "Any", isSelected: true) { }
-        WineTypeCard(title: "Red", color: .red, isSelected: false) { }
+        WineTypeCard(wineColor: nil, isSelected: true) { }
+        WineTypeCard(wineColor: .red, isSelected: false) { }
+        WineTypeCard(wineColor: .white, isSelected: true) { }
     }
     .padding()
 }

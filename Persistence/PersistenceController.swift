@@ -1,4 +1,5 @@
 import CoreData
+import os
 
 struct PersistenceController {
     static let shared = PersistenceController()
@@ -13,6 +14,7 @@ struct PersistenceController {
         
         container.loadPersistentStores { description, error in
             if let error = error {
+                Logger.data.fault("Couldn't load the wine store: \(error)")
                 fatalError("Error: \(error.localizedDescription)")
             }
         }

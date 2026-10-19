@@ -1,242 +1,125 @@
 import UIKit
 import Foundation
 
+/// Reads a wine label photo into form fields, through a forced `record_wine_label` tool call (see
+/// ``AIClient``) so the details come back as structured JSON from either provider.
 class VisionService {
     static let shared = VisionService()
-    private let baseURL = "https://api.anthropic.com/v1/messages"
-    
-    private var apiKey: String {
-        UserDefaults.standard.string(forKey: "claudeAPIKey") ?? ""
-    }
-    
-    private var model: String {
-        UserDefaults.standard.string(forKey: "claudeModel") ?? "claude-sonnet-4-20250514"
-    }
-    
-    // Intermediate struct to match the API response format
-    private struct APIWineResponse: Codable {
-        let name: String
-        let color: WineColor
-        let style: WineStyle
-        let sweetness: WineSweetness?
-        let producer: String?
-        let vintage: Int?
-        let region: String?
-        let varietal: String?
-    }
 
-    func recognizeWineLabel(_ image: UIImage) async throws -> RecognizedWineAttributes {
-        // Check if API key is configured
-        guard !apiKey.isEmpty else {
-            throw VisionError.missingAPIKey
-        }
-        
-        // Calculate optimal dimensions based on aspect ratio
-        let optimizedImage = image.optimizedForClaude()
-        
-        guard let imageData = optimizedImage.jpegData(compressionQuality: 0.7) else {
+    func recognizeWineLabel(_ image: UIImage, provider: AIProvider, apiKey: String,
+                            modelID: String) async throws -> RecognizedWineAttributes {
+        guard !apiKey.isEmpty else { throw VisionError.notConfigured(provider) }
+        guard !modelID.isEmpty else { throw VisionError.noModelSelected(provider) }
+
+        // 1568 px on the long edge is the most either provider uses for vision input; anything
+        // larger is only downscaled again on arrival.
+        guard let imageData = image.scaledDown(toMaxPixelLength: 1568).jpegData(compressionQuality: 0.7) else {
             throw VisionError.imageProcessingFailed
         }
 
-        // Encode the image as base64
-        let base64Image = imageData.base64EncodedString()
-        print("Base64 image encoded successfully.")
-
-        let url = URL(string: baseURL)!
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.setValue("application/json", forHTTPHeaderField: "content-type")
-        request.setValue("2023-06-01", forHTTPHeaderField: "anthropic-version")
-        request.setValue(apiKey, forHTTPHeaderField: "x-api-key")
-
-        // Construct the API request body
-        let requestBody: [String: Any] = [
-            "model": model,
-            "max_tokens": 1024,
-            "messages": [
-                [
-                    "role": "user",
-                    "content": [
-                        [
-                            "type": "image",
-                            "source": [
-                                "type": "base64",
-                                "media_type": "image/jpeg",
-                                "data": base64Image
-                            ]
-                        ],
-                        [
-                            "type": "text",
-                            "text": """
-                            Return a JSON object with ONLY the following fields describing the wine label, inferring details where possible:
-                            {
-                                \"name\": \"string\",
-                                \"color\": \"Red|White|Rosé|Orange|Other\",
-                                \"style\": \"Still|Sparkling|Fortified\",
-                                \"sweetness\": \"Dry|Off-Dry|Sweet|Dessert-Sweet|null\",
-                                \"producer\": \"string|null\",
-                                \"vintage\": number|null,
-                                \"region\": \"string|null\",
-                                \"varietal\": \"string|null\"
-                            }
-                            Do not include any additional text, description, or explanation - only return valid JSON.
-                            """
-                        ]
-                    ]
-                ]
-            ]
-        ]
-
-        request.httpBody = try JSONSerialization.data(withJSONObject: requestBody)
-        print("Request body created successfully.")
-
-        // Perform the API request
-        let (data, response) = try await URLSession.shared.data(for: request)
-
-        guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
-            if let httpResponse = response as? HTTPURLResponse {
-                let responseString = String(data: data, encoding: .utf8) ?? "No response body"
-                throw VisionError.apiError("Status code: \(httpResponse.statusCode), Response: \(responseString)")
-            }
-            throw VisionError.invalidResponse
+        let input: [String: Any]
+        do {
+            input = try await AIClient.forcedToolInput(
+                request(base64Image: imageData.base64EncodedString(), modelID: modelID),
+                provider: provider, apiKey: apiKey)
+        } catch AIClient.CallError.noToolCall {
+            throw VisionError.noLabelFound
+        } catch let error as AIClient.CallError {
+            throw VisionError.aiFailure(error, provider)
         }
 
-        print("API response received successfully.")
-
-        // Parse Claude response
-        let claudeResponse = try JSONDecoder().decode(ClaudeResponse.self, from: data)
-        
-        guard let content = claudeResponse.content.first?.text else {
-            throw VisionError.parsingFailed
+        guard let attributes = Self.attributes(from: input) else {
+            throw VisionError.noLabelFound
         }
-
-        print("Response content extracted: \(content)")
-
-        // Convert the content string to data for JSON parsing
-        guard let jsonData = content.data(using: .utf8) else {
-            throw VisionError.parsingFailed
-        }
-
-        // First parse to our intermediate APIWineResponse
-        let apiResponse = try JSONDecoder().decode(APIWineResponse.self, from: jsonData)
-        
-        // Transform to our RecognizedWineAttributes model
-        let attributes = RecognizedWineAttributes(
-            name: apiResponse.name,
-            color: apiResponse.color,
-            style: apiResponse.style,
-            sweetness: apiResponse.sweetness.map { Set([$0]) } ?? Set(),
-            producer: apiResponse.producer,
-            vintage: apiResponse.vintage,
-            region: apiResponse.region,
-            varietal: apiResponse.varietal
-        )
-        
-        print("Extracted wine attributes: \(attributes)")
-        
         return attributes
     }
 
+    private func request(base64Image: String, modelID: String) -> AIToolRequest {
+        AIToolRequest(
+            modelID: modelID,
+            maxTokens: 1024,
+            systemPrompt: """
+                You read wine labels. Given a photo of a bottle, call the record_wine_label tool \
+                with the details you can see, inferring color, style and sweetness from the wine's \
+                name, region and varietal where the label doesn't state them. Leave out anything \
+                you can't read or reasonably infer.
+                """,
+            userText: "Record the details of this wine label.",
+            image: AIImage(base64: base64Image, mediaType: "image/jpeg"),
+            tool: AITool(
+                name: "record_wine_label",
+                description: "Record the details read from a wine label.",
+                properties: [
+                    "name": ["type": "string", "description": "The wine's name as printed."],
+                    "color": ["type": "string", "enum": WineColor.allCases.map(\.rawValue)],
+                    "style": ["type": "string", "enum": WineStyle.allCases.map(\.rawValue)],
+                    "sweetness": ["type": "string", "enum": WineSweetness.allCases.map(\.rawValue)],
+                    "producer": ["type": "string"],
+                    "vintage": ["type": "integer", "description": "Four-digit year; omit for NV."],
+                    "region": ["type": "string"],
+                    "varietal": ["type": "string", "description": "Grape or blend."],
+                ],
+                required: ["name", "color", "style"]),
+            timeout: 60)
+    }
+
+    /// Turn the tool input into form values, leniently: OpenAI treats enums as hints (see
+    /// ``OpenAIWire``), so a near-miss like "rose" or "red" is matched rather than rejected. An
+    /// unrecognised value comes back nil like a missing one, so the form keeps what it already had.
+    /// Nil only when there is no name — without one there is nothing to prefill.
+    static func attributes(from input: [String: Any]) -> RecognizedWineAttributes? {
+        guard let name = text(input["name"]) else { return nil }
+        return RecognizedWineAttributes(
+            name: name,
+            color: match(input["color"], in: WineColor.allCases),
+            style: match(input["style"], in: WineStyle.allCases),
+            sweetness: match(input["sweetness"], in: WineSweetness.allCases).map { Set([$0]) },
+            producer: text(input["producer"]),
+            vintage: year(input["vintage"]),
+            region: text(input["region"]),
+            varietal: text(input["varietal"]))
+    }
+
+    private static func text(_ value: Any?) -> String? {
+        guard let string = (value as? String)?.trimmingCharacters(in: .whitespacesAndNewlines),
+              !string.isEmpty else { return nil }
+        return string
+    }
+
+    private static func match<T: RawRepresentable>(_ value: Any?, in cases: [T]) -> T?
+    where T.RawValue == String {
+        guard let string = text(value) else { return nil }
+        return cases.first {
+            $0.rawValue.compare(string, options: [.caseInsensitive, .diacriticInsensitive]) == .orderedSame
+        }
+    }
+
+    /// The schema asks for an integer, but a string year ("2019") is common enough to accept.
+    private static func year(_ value: Any?) -> Int? {
+        if let number = value as? NSNumber { return number.intValue }
+        if let string = text(value) { return Int(string) }
+        return nil
+    }
+
     enum VisionError: Error, LocalizedError {
-        case missingAPIKey
+        case notConfigured(AIProvider)
+        case noModelSelected(AIProvider)
         case imageProcessingFailed
-        case parsingFailed
-        case apiError(String)
-        case networkError(Error)
-        case invalidResponse
-        
+        case aiFailure(AIClient.CallError, AIProvider)
+        case noLabelFound
+
         var errorDescription: String? {
             switch self {
-            case .missingAPIKey:
-                return "Please set your Claude API key in Settings to use AI features."
+            case .notConfigured(let provider):
+                return "Add your \(provider.displayName) API key in Settings to scan wine labels."
+            case .noModelSelected:
+                return "Choose a label scanning model in Settings."
             case .imageProcessingFailed:
                 return "Failed to process the image for analysis."
-            case .parsingFailed:
-                return "Failed to parse the wine information from the image."
-            case .apiError(let message):
-                return "API Error: \(message)"
-            case .networkError(let error):
-                return "Network Error: \(error.localizedDescription)"
-            case .invalidResponse:
-                return "Received an invalid response from the API."
-            }
-        }
-    }
-}
-
-// Helper structures for Claude API response
-private extension VisionService {
-    struct ClaudeResponse: Codable {
-        let content: [Content]
-        let id: String
-        let model: String
-        let role: String
-        let stopReason: String
-        let stopSequence: String?
-        let type: String
-        let usage: Usage
-        
-        struct Content: Codable {
-            let text: String
-            let type: String
-        }
-        
-        struct Usage: Codable {
-            let inputTokens: Int
-            let outputTokens: Int
-            
-            enum CodingKeys: String, CodingKey {
-                case inputTokens = "input_tokens"
-                case outputTokens = "output_tokens"
-            }
-        }
-        
-        enum CodingKeys: String, CodingKey {
-            case content
-            case id
-            case model
-            case role
-            case stopReason = "stop_reason"
-            case stopSequence = "stop_sequence"
-            case type
-            case usage
-        }
-    }
-}
-
-// Helper extension for image optimization
-private extension UIImage {
-    func optimizedForClaude() -> UIImage {
-        let aspectRatio = size.width / size.height
-        var targetSize: CGSize
-        
-        // Determine optimal dimensions based on aspect ratio
-        switch aspectRatio {
-        case 0.9...1.1: // ~1:1
-            targetSize = CGSize(width: 1092, height: 1092)
-        case 0.7...0.8: // ~3:4
-            targetSize = CGSize(width: 951, height: 1268)
-        case 0.6...0.7: // ~2:3
-            targetSize = CGSize(width: 896, height: 1344)
-        case 0.5...0.6: // ~9:16
-            targetSize = CGSize(width: 819, height: 1456)
-        case 0.4...0.5: // ~1:2
-            targetSize = CGSize(width: 784, height: 1568)
-        default:
-            // For other aspect ratios, maintain aspect ratio with max dimension of 1568
-            if aspectRatio > 1 {
-                let width = min(1568.0, size.width)
-                targetSize = CGSize(width: width, height: width / aspectRatio)
-            } else {
-                let height = min(1568.0, size.height)
-                targetSize = CGSize(width: height * aspectRatio, height: height)
-            }
-        }
-        
-        return autoreleasepool {
-            let renderer = UIGraphicsImageRenderer(size: targetSize)
-            return renderer.image { _ in
-                draw(in: CGRect(origin: .zero, size: targetSize))
+            case .aiFailure(let error, let provider):
+                return error.summary(provider: provider)
+            case .noLabelFound:
+                return "Couldn't read a wine label in this photo."
             }
         }
     }
